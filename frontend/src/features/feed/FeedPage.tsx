@@ -1,4 +1,6 @@
 import { useGetFeedQuery, useLikeMutation, useUnlikeMutation } from '../../api/apiSlice';
+import { Header } from '../../components/Header';
+import { FollowSearch } from '../search/FollowSearch';
 import { PostComposer } from './PostComposer';
 
 export function FeedPage() {
@@ -8,24 +10,40 @@ export function FeedPage() {
 
   return (
     <div className="feed-page">
-      <PostComposer />
+      <Header />
 
-      {isLoading && <p>Loading feed…</p>}
+      <main className="feed-main">
+        <FollowSearch />
+        <PostComposer />
 
-      <ul className="feed-list">
-        {posts.map((post) => (
-          <li key={post.postId} className="feed-post">
-            <p className="feed-post-author">{post.authorId}</p>
-            <p className="feed-post-body">{post.body}</p>
-            <button
-              type="button"
-              onClick={() => (post.likedByMe ? unlike(post.postId) : like(post.postId))}
-            >
-              {post.likedByMe ? 'Unlike' : 'Like'} ({post.likeCount})
-            </button>
-          </li>
-        ))}
-      </ul>
+        {isLoading && <p className="muted">Loading feed…</p>}
+        {!isLoading && posts.length === 0 && (
+          <p className="muted">
+            Nothing here yet — follow someone above, or write the first post.
+          </p>
+        )}
+
+        <ul className="feed-list">
+          {posts.map((post) => (
+            <li key={post.postId} className="feed-post">
+              <div className="feed-post-avatar" aria-hidden="true">
+                {(post.authorUsername || '?').slice(0, 1).toUpperCase()}
+              </div>
+              <div className="feed-post-content">
+                <p className="feed-post-author">{post.authorUsername}</p>
+                <p className="feed-post-body">{post.body}</p>
+                <button
+                  type="button"
+                  className={post.likedByMe ? 'like-button liked' : 'like-button'}
+                  onClick={() => (post.likedByMe ? unlike(post.postId) : like(post.postId))}
+                >
+                  {post.likedByMe ? '♥' : '♡'} {post.likeCount}
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </main>
     </div>
   );
 }

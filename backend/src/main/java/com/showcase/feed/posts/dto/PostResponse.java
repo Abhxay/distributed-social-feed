@@ -6,6 +6,7 @@ import java.util.UUID;
 public record PostResponse(
     UUID postId,
     UUID authorId,
+    String authorUsername,
     String body,
     int likeCount,
     boolean likedByMe,

@@ -1,5 +1,6 @@
 package com.showcase.feed.posts;
 
+import com.showcase.feed.auth.UserRepository;
 import com.showcase.feed.common.idempotency.IdempotencyService;
 import com.showcase.feed.posts.dto.CreatePostRequest;
 import com.showcase.feed.posts.dto.PostResponse;
@@ -20,10 +21,13 @@ import java.util.UUID;
 public class PostController {
     private final PostService postService;
     private final IdempotencyService idempotencyService;
+    private final UserRepository userRepository;
 
-    public PostController(PostService postService, IdempotencyService idempotencyService) {
+    public PostController(PostService postService, IdempotencyService idempotencyService,
+                           UserRepository userRepository) {
         this.postService = postService;
         this.idempotencyService = idempotencyService;
+        this.userRepository = userRepository;
     }
 
     // Idempotency-Key has no required=false: a missing required header is a 400 from Spring MVC itself.
@@ -38,7 +42,10 @@ public class PostController {
     }
 
     private PostResponse toResponse(Post post) {
-        return new PostResponse(post.getId(), post.getAuthorId(), post.getBody(), post.getLikeCount(),
-            false, post.getCreatedAt());
+        String authorUsername = userRepository.findById(post.getAuthorId())
+            .map(com.showcase.feed.auth.User::getUsername)
+            .orElse("unknown");
+        return new PostResponse(post.getId(), post.getAuthorId(), authorUsername, post.getBody(),
+            post.getLikeCount(), false, post.getCreatedAt());
     }
 }

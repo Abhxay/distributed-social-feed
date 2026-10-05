@@ -22,6 +22,7 @@ describe('apiSlice optimistic like update', () => {
     const fakePost: FeedPost = {
       postId: 'post-1',
       authorId: 'user-1',
+      authorUsername: 'alice',
       body: 'hello world',
       likeCount: 0,
       likedByMe: false,

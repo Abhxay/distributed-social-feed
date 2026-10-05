@@ -1,5 +1,7 @@
 package com.showcase.feed.feed;
 
+import com.showcase.feed.auth.User;
+import com.showcase.feed.auth.UserRepository;
 import com.showcase.feed.likes.LikeRepository;
 import com.showcase.feed.posts.Post;
 import com.showcase.feed.posts.PostRepository;
@@ -22,12 +24,14 @@ public class FeedController {
     private final FeedCacheService feedCacheService;
     private final PostRepository postRepository;
     private final LikeRepository likeRepository;
+    private final UserRepository userRepository;
 
     public FeedController(FeedCacheService feedCacheService, PostRepository postRepository,
-                           LikeRepository likeRepository) {
+                           LikeRepository likeRepository, UserRepository userRepository) {
         this.feedCacheService = feedCacheService;
         this.postRepository = postRepository;
         this.likeRepository = likeRepository;
+        this.userRepository = userRepository;
     }
 
     @GetMapping
@@ -45,10 +49,17 @@ public class FeedController {
         }
         Set<UUID> likedPostIds = likeRepository.findLikedPostIds(userId, ids);
 
+        Set<UUID> authorIds = byId.values().stream().map(Post::getAuthorId).collect(java.util.stream.Collectors.toSet());
+        Map<UUID, String> usernameById = new HashMap<>();
+        for (User user : userRepository.findAllById(authorIds)) {
+            usernameById.put(user.getId(), user.getUsername());
+        }
+
         return ids.stream()
             .map(byId::get)
             .filter(Objects::nonNull)
-            .map(post -> new PostResponse(post.getId(), post.getAuthorId(), post.getBody(), post.getLikeCount(),
+            .map(post -> new PostResponse(post.getId(), post.getAuthorId(),
+                usernameById.getOrDefault(post.getAuthorId(), "unknown"), post.getBody(), post.getLikeCount(),
                 likedPostIds.contains(post.getId()), post.getCreatedAt()))
             .toList();
     }

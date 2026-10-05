@@ -22,6 +22,7 @@ describe('FeedPage', () => {
                   {
                     postId: 'post-1',
                     authorId: 'me',
+                    authorUsername: 'tester',
                     body: 'hello from the test',
                     likeCount: 0,
                     likedByMe: false,

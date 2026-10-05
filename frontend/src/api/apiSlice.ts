@@ -4,6 +4,7 @@ import type { RootState } from '../app/store';
 export interface FeedPost {
   postId: string;
   authorId: string;
+  authorUsername: string;
   body: string;
   likeCount: number;
   likedByMe: boolean;

@@ -1,5 +1,7 @@
 package com.showcase.feed.posts;
 
+import com.showcase.feed.auth.User;
+import com.showcase.feed.auth.UserRepository;
 import com.showcase.feed.common.idempotency.IdempotencyService;
 import com.showcase.feed.posts.dto.CreatePostRequest;
 import com.showcase.feed.posts.dto.PostResponse;
@@ -7,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.Authentication;
 
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
 
@@ -28,6 +31,7 @@ class PostControllerTest {
 
     private PostService postService;
     private IdempotencyService idempotencyService;
+    private UserRepository userRepository;
     private PostController controller;
     private Authentication authentication;
     private UUID authorId;
@@ -36,10 +40,12 @@ class PostControllerTest {
     void setUp() {
         postService = mock(PostService.class);
         idempotencyService = mock(IdempotencyService.class);
-        controller = new PostController(postService, idempotencyService);
+        userRepository = mock(UserRepository.class);
+        controller = new PostController(postService, idempotencyService, userRepository);
         authorId = UUID.randomUUID();
         authentication = mock(Authentication.class);
         when(authentication.getName()).thenReturn(authorId.toString());
+        when(userRepository.findById(authorId)).thenReturn(Optional.of(new User("alice", "hash")));
     }
 
     @Test
@@ -66,7 +72,7 @@ class PostControllerTest {
         Post post = new Post();
         post.setAuthorId(authorId);
         post.setBody("hi");
-        PostResponse cached = new PostResponse(post.getId(), authorId, "hi", 0, false, post.getCreatedAt());
+        PostResponse cached = new PostResponse(post.getId(), authorId, "alice", "hi", 0, false, post.getCreatedAt());
 
         when(postService.createPost(authorId, "hi")).thenReturn(post);
         when(idempotencyService.execute(eq("key-1"), any(), eq(PostResponse.class), any()))

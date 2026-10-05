@@ -1,10 +1,25 @@
+import { Navigate, Route, Routes } from 'react-router-dom';
+import { SignupPage } from './features/auth/SignupPage';
+import { LoginPage } from './features/auth/LoginPage';
+import { ProtectedRoute } from './features/auth/ProtectedRoute';
 import { FeedPage } from './features/feed/FeedPage';
 
-// ponytail: no routing — this is a single-page showcase of the feed. A real
-// deployment would add react-router with separate routes for signup/login
-// vs. the feed instead of always rendering FeedPage.
 function App() {
-  return <FeedPage />;
+  return (
+    <Routes>
+      <Route path="/signup" element={<SignupPage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route
+        path="/feed"
+        element={
+          <ProtectedRoute>
+            <FeedPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="*" element={<Navigate to="/feed" replace />} />
+    </Routes>
+  );
 }
 
 export default App;
