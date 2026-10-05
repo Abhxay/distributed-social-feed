@@ -16,6 +16,13 @@ export interface UserSummary {
   username: string;
 }
 
+export interface ExploreUser {
+  id: string;
+  username: string;
+  activityScore: number;
+  isFollowing: boolean;
+}
+
 interface AuthTokens {
   accessToken: string;
   refreshToken: string;
@@ -35,7 +42,7 @@ export const apiSlice = createApi({
       return headers;
     },
   }),
-  tagTypes: ['Feed'],
+  tagTypes: ['Feed', 'Explore'],
   endpoints: (builder) => ({
     signup: builder.mutation<{ userId: string }, { username: string; password: string }>({
       query: (body) => ({ url: '/auth/signup', method: 'POST', body }),
@@ -57,12 +64,19 @@ export const apiSlice = createApi({
       query: (q) => `/users/search?q=${encodeURIComponent(q)}`,
     }),
 
+    exploreUsers: builder.query<ExploreUser[], void>({
+      query: () => '/users/explore',
+      providesTags: ['Explore'],
+    }),
+
     follow: builder.mutation<void, string>({
       query: (userId) => ({ url: `/users/${userId}/follow`, method: 'POST' }),
+      invalidatesTags: ['Explore'],
     }),
 
     unfollow: builder.mutation<void, string>({
       query: (userId) => ({ url: `/users/${userId}/follow`, method: 'DELETE' }),
+      invalidatesTags: ['Explore'],
     }),
 
     createPost: builder.mutation<{ postId: string }, string>({
@@ -136,6 +150,7 @@ export const {
   useLoginMutation,
   useRefreshMutation,
   useSearchUsersQuery,
+  useExploreUsersQuery,
   useFollowMutation,
   useUnfollowMutation,
   useCreatePostMutation,

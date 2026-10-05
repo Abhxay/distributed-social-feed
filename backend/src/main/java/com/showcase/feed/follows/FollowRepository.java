@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public interface FollowRepository extends JpaRepository<Follow, FollowId> {
@@ -17,4 +18,8 @@ public interface FollowRepository extends JpaRepository<Follow, FollowId> {
 
     /** Derived delete query — Spring Data runs this transactionally and returns the row count removed. */
     long deleteByFollowerIdAndFolloweeId(UUID followerId, UUID followeeId);
+
+    /** Used by Explore to mark which of the ranked candidates the current user already follows. */
+    @Query("SELECT f.followeeId FROM Follow f WHERE f.followerId = :followerId AND f.followeeId IN :candidateIds")
+    Set<UUID> findFollowedIds(@Param("followerId") UUID followerId, @Param("candidateIds") List<UUID> candidateIds);
 }

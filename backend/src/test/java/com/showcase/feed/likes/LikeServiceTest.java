@@ -1,5 +1,7 @@
 package com.showcase.feed.likes;
 
+import com.showcase.feed.explore.ExploreRanking;
+import com.showcase.feed.posts.PostRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.core.SetOperations;
@@ -32,7 +34,7 @@ class LikeServiceTest {
         setOps = mock(SetOperations.class);
         when(redis.opsForValue()).thenReturn(valueOps);
         when(redis.opsForSet()).thenReturn(setOps);
-        service = new LikeService(likeRepository, redis);
+        service = new LikeService(likeRepository, mock(PostRepository.class), redis, mock(ExploreRanking.class));
     }
 
     @Test

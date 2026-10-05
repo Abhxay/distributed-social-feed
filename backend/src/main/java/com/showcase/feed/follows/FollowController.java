@@ -1,6 +1,8 @@
 package com.showcase.feed.follows;
 
 import com.showcase.feed.auth.UserRepository;
+import com.showcase.feed.explore.ExploreService;
+import com.showcase.feed.explore.ExploreUserResponse;
 import com.showcase.feed.follows.dto.UserSearchResult;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -19,10 +21,13 @@ import java.util.UUID;
 public class FollowController {
     private final FollowService followService;
     private final UserRepository userRepository;
+    private final ExploreService exploreService;
 
-    public FollowController(FollowService followService, UserRepository userRepository) {
+    public FollowController(FollowService followService, UserRepository userRepository,
+                             ExploreService exploreService) {
         this.followService = followService;
         this.userRepository = userRepository;
+        this.exploreService = exploreService;
     }
 
     @PostMapping("/users/{id}/follow")
@@ -44,5 +49,13 @@ public class FollowController {
         return userRepository.findTop10ByUsernameContainingIgnoreCase(q).stream()
             .map(u -> new UserSearchResult(u.getId(), u.getUsername()))
             .toList();
+    }
+
+    // Ranked by activity score (posting + being liked), read from a Redis sorted set — see
+    // ExploreRanking for why this one piece of data lives natively in Redis rather than Postgres.
+    @GetMapping("/users/explore")
+    public List<ExploreUserResponse> explore(Authentication authentication) {
+        UUID currentUserId = UUID.fromString(authentication.getName());
+        return exploreService.getRanking(currentUserId, 50);
     }
 }

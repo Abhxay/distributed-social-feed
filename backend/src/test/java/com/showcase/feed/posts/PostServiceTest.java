@@ -1,6 +1,7 @@
 package com.showcase.feed.posts;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.showcase.feed.explore.ExploreRanking;
 import com.showcase.feed.outbox.OutboxEvent;
 import com.showcase.feed.outbox.OutboxEventRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +29,7 @@ class PostServiceTest {
     void setUp() {
         postRepository = mock(PostRepository.class);
         outboxEventRepository = mock(OutboxEventRepository.class);
-        service = new PostService(postRepository, outboxEventRepository, new ObjectMapper());
+        service = new PostService(postRepository, outboxEventRepository, new ObjectMapper(), mock(ExploreRanking.class));
     }
 
     @Test

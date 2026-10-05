@@ -1,5 +1,5 @@
 import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { logout } from '../features/auth/authSlice';
 
 export function Header() {
@@ -14,9 +14,17 @@ export function Header() {
   return (
     <header className="app-header">
       <span className="app-brand">distributed-social-feed</span>
-      <button type="button" className="ghost-button" onClick={handleLogout}>
-        Log out
-      </button>
+      <nav className="app-nav">
+        <NavLink to="/feed" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+          Feed
+        </NavLink>
+        <NavLink to="/explore" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+          Explore
+        </NavLink>
+        <button type="button" className="ghost-button" onClick={handleLogout}>
+          Log out
+        </button>
+      </nav>
     </header>
   );
 }

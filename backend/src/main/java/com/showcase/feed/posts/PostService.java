@@ -1,6 +1,7 @@
 package com.showcase.feed.posts;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.showcase.feed.explore.ExploreRanking;
 import com.showcase.feed.outbox.OutboxEvent;
 import com.showcase.feed.outbox.OutboxEventRepository;
 import org.springframework.stereotype.Service;
@@ -15,13 +16,16 @@ public class PostService {
     private final PostRepository postRepository;
     private final OutboxEventRepository outboxEventRepository;
     private final ObjectMapper objectMapper;
+    private final ExploreRanking exploreRanking;
 
     public PostService(PostRepository postRepository,
                         OutboxEventRepository outboxEventRepository,
-                        ObjectMapper objectMapper) {
+                        ObjectMapper objectMapper,
+                        ExploreRanking exploreRanking) {
         this.postRepository = postRepository;
         this.outboxEventRepository = outboxEventRepository;
         this.objectMapper = objectMapper;
+        this.exploreRanking = exploreRanking;
     }
 
     /**
@@ -43,6 +47,7 @@ public class PostService {
         event.setPayload(writePayload(post));
         outboxEventRepository.save(event);
 
+        exploreRanking.creditPost(authorId);
         return post;
     }
 

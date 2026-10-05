@@ -3,6 +3,7 @@ import { SignupPage } from './features/auth/SignupPage';
 import { LoginPage } from './features/auth/LoginPage';
 import { ProtectedRoute } from './features/auth/ProtectedRoute';
 import { FeedPage } from './features/feed/FeedPage';
+import { ExplorePage } from './features/explore/ExplorePage';
 
 function App() {
   return (
@@ -14,6 +15,14 @@ function App() {
         element={
           <ProtectedRoute>
             <FeedPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/explore"
+        element={
+          <ProtectedRoute>
+            <ExplorePage />
           </ProtectedRoute>
         }
       />
