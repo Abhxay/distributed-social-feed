@@ -4,6 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.MDC;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -29,6 +30,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 UUID userId = tokenSigner.parseAndValidate(header.substring(7));
                 SecurityContextHolder.getContext().setAuthentication(
                     new UsernamePasswordAuthenticationToken(userId.toString(), null, List.of()));
+                MDC.put("userId", userId.toString());
             } catch (RuntimeException e) {
                 // missing/invalid/expired token: leave unauthenticated, let Spring Security's
                 // own entry point return 401 for protected routes — don't throw from the filter.

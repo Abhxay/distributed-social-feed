@@ -1,6 +1,8 @@
 package com.showcase.feed.likes;
 
 import com.showcase.feed.posts.PostRepository;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -16,10 +18,16 @@ public class LikeReconciliationJob {
     private final PostRepository postRepository;
 
     public LikeReconciliationJob(StringRedisTemplate redis, LikeRepository likeRepository,
-                                  PostRepository postRepository) {
+                                  PostRepository postRepository, MeterRegistry meterRegistry) {
         this.redis = redis;
         this.likeRepository = likeRepository;
         this.postRepository = postRepository;
+        Gauge.builder("like.reconciliation.backlog", redis, r -> {
+                Long size = r.opsForSet().size("dirty:likes");
+                return size == null ? 0 : size;
+            })
+            .description("Number of posts awaiting like-count reconciliation")
+            .register(meterRegistry);
     }
 
     /**

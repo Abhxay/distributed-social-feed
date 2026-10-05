@@ -3,6 +3,8 @@ package com.showcase.feed.feed;
 import com.showcase.feed.common.util.JitteredBackoff;
 import com.showcase.feed.posts.Post;
 import com.showcase.feed.posts.PostRepository;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -21,18 +23,26 @@ public class FeedCacheService {
 
     private final StringRedisTemplate redis;
     private final PostRepository postRepository;
+    private final Counter cacheHits;
+    private final Counter cacheMisses;
+    private final Counter cacheRebuilds;
 
-    public FeedCacheService(StringRedisTemplate redis, PostRepository postRepository) {
+    public FeedCacheService(StringRedisTemplate redis, PostRepository postRepository, MeterRegistry meterRegistry) {
         this.redis = redis;
         this.postRepository = postRepository;
+        this.cacheHits = meterRegistry.counter("feed.cache.hit");
+        this.cacheMisses = meterRegistry.counter("feed.cache.miss");
+        this.cacheRebuilds = meterRegistry.counter("feed.cache.rebuild");
     }
 
     public List<UUID> getFeed(UUID userId) {
         String feedKey = "feed:" + userId;
         Set<String> cached = redis.opsForZSet().reverseRange(feedKey, 0, PAGE_SIZE - 1);
         if (cached != null && !cached.isEmpty()) {
+            cacheHits.increment();
             return toUuids(cached);
         }
+        cacheMisses.increment();
 
         String lockKey = "lock:feed:" + userId;
         Boolean acquired = redis.opsForValue().setIfAbsent(lockKey, "1", LEASE_TTL);
@@ -56,6 +66,7 @@ public class FeedCacheService {
     }
 
     private List<UUID> rebuildAndCache(UUID userId, String feedKey) {
+        cacheRebuilds.increment();
         List<Post> posts = postRepository.findFeedPosts(userId, PAGE_SIZE);
         redis.executePipelined((RedisCallback<Object>) connection -> {
             posts.forEach(post ->

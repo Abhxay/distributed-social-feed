@@ -2,6 +2,8 @@ package com.showcase.feed.outbox;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -22,10 +24,14 @@ public class OutboxPublisher {
 
     public OutboxPublisher(KafkaTemplate<String, String> kafkaTemplate,
                             OutboxEventRepository outboxRepository,
-                            ObjectMapper objectMapper) {
+                            ObjectMapper objectMapper,
+                            MeterRegistry meterRegistry) {
         this.kafkaTemplate = kafkaTemplate;
         this.outboxRepository = outboxRepository;
         this.objectMapper = objectMapper;
+        Gauge.builder("outbox.backlog.size", outboxRepository, OutboxEventRepository::countByPublishedAtIsNull)
+            .description("Number of outbox events not yet published to Kafka")
+            .register(meterRegistry);
     }
 
     @Scheduled(fixedDelay = 1000)

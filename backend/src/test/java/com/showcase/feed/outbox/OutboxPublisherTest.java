@@ -1,6 +1,7 @@
 package com.showcase.feed.outbox;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -31,7 +32,7 @@ class OutboxPublisherTest {
     void setUp() {
         outboxRepository = mock(OutboxEventRepository.class);
         kafkaTemplate = mock(KafkaTemplate.class);
-        publisher = new OutboxPublisher(kafkaTemplate, outboxRepository, new ObjectMapper());
+        publisher = new OutboxPublisher(kafkaTemplate, outboxRepository, new ObjectMapper(), new SimpleMeterRegistry());
     }
 
     private OutboxEvent pendingEvent() {

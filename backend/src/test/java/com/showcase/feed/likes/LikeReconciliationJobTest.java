@@ -1,6 +1,7 @@
 package com.showcase.feed.likes;
 
 import com.showcase.feed.posts.PostRepository;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.core.SetOperations;
@@ -34,7 +35,7 @@ class LikeReconciliationJobTest {
         postRepository = mock(PostRepository.class);
         when(redis.opsForSet()).thenReturn(setOps);
         when(redis.opsForValue()).thenReturn(valueOps);
-        job = new LikeReconciliationJob(redis, likeRepository, postRepository);
+        job = new LikeReconciliationJob(redis, likeRepository, postRepository, new SimpleMeterRegistry());
     }
 
     @Test

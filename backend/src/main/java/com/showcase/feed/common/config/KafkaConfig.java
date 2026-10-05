@@ -16,6 +16,9 @@ public class KafkaConfig {
 
     @Bean
     public NewTopic postCreatedTopic() {
-        return TopicBuilder.name("post.created").partitions(3).replicas(1).build();
+        // Aiven's free Kafka tier caps user topics at 2 partitions — discovered by actually
+        // connecting to it, not assumed up front. 2 is still enough to demonstrate keyed
+        // ordering (same authorId always lands on the same partition).
+        return TopicBuilder.name("post.created").partitions(2).replicas(1).build();
     }
 }

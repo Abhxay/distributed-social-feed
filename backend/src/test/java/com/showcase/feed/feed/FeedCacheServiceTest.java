@@ -1,6 +1,7 @@
 package com.showcase.feed.feed;
 
 import com.showcase.feed.posts.PostRepository;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -41,7 +42,7 @@ class FeedCacheServiceTest {
         valueOps = mock(ValueOperations.class);
         postRepository = mock(PostRepository.class);
         when(redis.opsForZSet()).thenReturn(zSetOps);
-        service = new FeedCacheService(redis, postRepository);
+        service = new FeedCacheService(redis, postRepository, new SimpleMeterRegistry());
     }
 
     @Test
