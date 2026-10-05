@@ -1,0 +1,9 @@
+# Claude Code / editor-local, not part of the project
+.claude/
+.sf/
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
