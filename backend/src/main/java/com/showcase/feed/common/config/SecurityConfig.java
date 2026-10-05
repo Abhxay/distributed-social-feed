@@ -24,7 +24,7 @@ public class SecurityConfig {
     // Comma-separated list; defaults to the Vite dev server so local development keeps working
     // with no env var set. Set FRONTEND_ORIGIN on Render to the deployed Vercel URL (and any
     // extra origins, comma-separated) once that's known.
-    @Value("${app.cors.allowed-origins:http://localhost:5173}")
+    @Value("${FRONTEND_ORIGIN:http://localhost:5173}")
     private String allowedOrigins;
 
     @Bean
