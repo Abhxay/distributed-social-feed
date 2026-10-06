@@ -14,12 +14,14 @@ import java.util.UUID;
  * post's author — likes are weighted higher since they reflect other users' engagement, not just
  * self-activity.
  *
- * Deliberately different trade-off from the rest of this project's Redis usage: everywhere else
- * Redis is a cache-aside layer kept honest by a reconciliation job against Postgres (the source of
- * truth). Here Redis IS the source of truth for the ranking — it is not persisted anywhere else and
- * is not rebuilt from Postgres. If Valkey data is ever lost, the ranking resets to empty rather than
- * recovering automatically. Acceptable for a ranking (it's directional, not a count anyone audits),
- * and avoids building a reconciliation job for data that doesn't need durability guarantees.
+ * Different trade-off from the rest of this project's Redis usage: everywhere else Redis is a
+ * cache-aside layer kept continuously honest by a reconciliation job against Postgres. Here Redis
+ * is the live source of truth for the ranking, updated incrementally (creditPost/creditLike) as
+ * activity happens — but unlike a true cache-aside value, it is never continuously reconciled.
+ * Postgres (posts + their like_count) is still the ultimate record: if Valkey data is ever lost or
+ * starts empty (fresh deploy onto an existing database — exactly what happened here),
+ * ExploreRankingBackfill rebuilds it once from Postgres on startup, then incremental updates take
+ * over from there.
  */
 @Component
 public class ExploreRanking {
@@ -43,6 +45,21 @@ public class ExploreRanking {
 
     public void revokeLike(UUID postAuthorId) {
         redis.opsForZSet().incrementScore(KEY, postAuthorId.toString(), -LIKE_WEIGHT);
+    }
+
+    /** True if the ranking has never been populated — the signal ExploreRankingBackfill uses to run once. */
+    public boolean isEmpty() {
+        Long size = redis.opsForZSet().size(KEY);
+        return size == null || size == 0;
+    }
+
+    /** Absolute set (not increment) — only for one-time backfill from Postgres, never the live write path. */
+    public void seed(UUID userId, double score) {
+        redis.opsForZSet().add(KEY, userId.toString(), score);
+    }
+
+    public static double weighScore(long postCount, long likesReceived) {
+        return postCount * POST_WEIGHT + likesReceived * LIKE_WEIGHT;
     }
 
     /** Highest-scoring users first. Score is included so the UI can show it as an activity signal. */

@@ -25,4 +25,12 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
     @Modifying
     @Query("UPDATE Post p SET p.likeCount = :count WHERE p.id = :postId")
     void updateLikeCount(@Param("postId") UUID postId, @Param("count") long count);
+
+    /**
+     * One row per author: [authorId, postCount, totalLikesReceived]. Used only by
+     * ExploreRankingBackfill to rebuild the Redis ranking from Postgres when it's empty
+     * (fresh deploy, or Valkey data lost) — never on the normal request path.
+     */
+    @Query("SELECT p.authorId, COUNT(p), COALESCE(SUM(p.likeCount), 0) FROM Post p GROUP BY p.authorId")
+    List<Object[]> aggregateActivityByAuthor();
 }
