@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import { useGetProfileQuery } from '../../api/apiSlice';
 import { Header } from '../../components/Header';
+import { PostCard } from '../feed/PostCard';
 
 export function ProfilePage() {
   const { data: profile, isLoading } = useGetProfileQuery();
+  const [activeTab, setActiveTab] = useState<'posts' | 'reposts'>('posts');
 
   return (
     <div className="feed-page">
@@ -17,26 +20,67 @@ export function ProfilePage() {
               </div>
               <div>
                 <h1>{profile.username}</h1>
-                <p className="muted">
-                  {profile.postCount} posts · {profile.likesReceived} likes received ·{' '}
-                  {profile.commentsReceived} comments received · {profile.activityScore} activity points
-                </p>
               </div>
             </div>
 
-            <ul className="feed-list">
-              {profile.posts.map((post) => (
-                <li key={post.postId} className="feed-post">
-                  <div className="feed-post-content">
-                    <p className="feed-post-body">{post.body}</p>
-                    <p className="muted explore-score">
-                      {post.likeCount} likes · {new Date(post.createdAt).toLocaleString()}
-                    </p>
+            <div className="profile-stats">
+              <div className="profile-stat">
+                <div className="muted profile-stat-label">Posts authored</div>
+                <div className="profile-stat-value tabular-nums">{profile.postCount}</div>
+              </div>
+              <div className="profile-stat">
+                <div className="muted profile-stat-label">Likes received</div>
+                <div className="profile-stat-value tabular-nums">{profile.likesReceived}</div>
+              </div>
+              <div className="profile-stat">
+                <div className="muted profile-stat-label">Comments received</div>
+                <div className="profile-stat-value tabular-nums">{profile.commentsReceived}</div>
+              </div>
+              <div className="profile-stat">
+                <div className="muted profile-stat-label">Activity score</div>
+                <div className="profile-stat-value tabular-nums">{profile.activityScore}</div>
+              </div>
+              {/* ponytail: followersCount has no real backend field yet — skipped rather than faked */}
+            </div>
+
+            <div className="tab-group">
+              <button
+                type="button"
+                className={activeTab === 'posts' ? 'tab-button active' : 'tab-button'}
+                onClick={() => setActiveTab('posts')}
+              >
+                Your posts ({profile.posts.length})
+              </button>
+              <button
+                type="button"
+                className={activeTab === 'reposts' ? 'tab-button active' : 'tab-button'}
+                onClick={() => setActiveTab('reposts')}
+              >
+                Reposts ({profile.reposts.length})
+              </button>
+            </div>
+
+            {activeTab === 'posts' ? (
+              <ul className="feed-list">
+                {profile.posts.map((post) => (
+                  <PostCard key={post.postId} post={post} />
+                ))}
+                {profile.posts.length === 0 && <p className="muted">No authored posts yet.</p>}
+              </ul>
+            ) : profile.reposts.length === 0 ? (
+              <p className="muted">No reposted content yet.</p>
+            ) : (
+              <div className="feed-list">
+                {profile.reposts.map((post) => (
+                  <div key={`repost-${post.postId}`} className="repost-wrapper">
+                    <div className="repost-label">↻ Reposted by @{profile.username}</div>
+                    <ul className="feed-list">
+                      <PostCard post={post} />
+                    </ul>
                   </div>
-                </li>
-              ))}
-              {profile.posts.length === 0 && <p className="muted">You haven't posted anything yet.</p>}
-            </ul>
+                ))}
+              </div>
+            )}
           </>
         )}
       </main>

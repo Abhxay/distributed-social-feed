@@ -1,7 +1,7 @@
 import { waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createTestStore } from '../test-utils/renderWithProviders';
-import { apiSlice, type FeedPost } from './apiSlice';
+import { apiSlice, type Post } from './apiSlice';
 
 describe('apiSlice optimistic like update', () => {
   beforeEach(() => {
@@ -19,13 +19,18 @@ describe('apiSlice optimistic like update', () => {
 
   it('flips likedByMe and increments likeCount before the request resolves', async () => {
     const store = createTestStore();
-    const fakePost: FeedPost = {
+    const fakePost: Post = {
       postId: 'post-1',
       authorId: 'user-1',
       authorUsername: 'alice',
+      headline: 'Hello',
       body: 'hello world',
+      imageUrl: null,
       likeCount: 0,
       likedByMe: false,
+      commentCount: 0,
+      repostCount: 0,
+      repostedByMe: false,
       createdAt: new Date().toISOString(),
     };
 

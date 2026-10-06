@@ -33,10 +33,12 @@ public class PostService {
      * the dual-write fix: Kafka never finds out about a post Postgres rolled back.
      */
     @Transactional
-    public Post createPost(UUID authorId, String body) {
+    public Post createPost(UUID authorId, String headline, String body, String imageUrl) {
         Post post = new Post();
         post.setAuthorId(authorId);
+        post.setHeadline(headline);
         post.setBody(body);
+        post.setImageUrl(imageUrl);
         postRepository.save(post);
 
         OutboxEvent event = new OutboxEvent();

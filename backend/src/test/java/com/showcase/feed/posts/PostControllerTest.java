@@ -3,17 +3,23 @@ package com.showcase.feed.posts;
 import com.showcase.feed.auth.User;
 import com.showcase.feed.auth.UserRepository;
 import com.showcase.feed.common.idempotency.IdempotencyService;
+import com.showcase.feed.likes.LikeRepository;
 import com.showcase.feed.posts.dto.CreatePostRequest;
 import com.showcase.feed.posts.dto.PostResponse;
+import com.showcase.feed.reposts.RepostRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.Authentication;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -32,6 +38,9 @@ class PostControllerTest {
     private PostService postService;
     private IdempotencyService idempotencyService;
     private UserRepository userRepository;
+    private PostRepository postRepository;
+    private LikeRepository likeRepository;
+    private RepostRepository repostRepository;
     private PostController controller;
     private Authentication authentication;
     private UUID authorId;
@@ -41,7 +50,11 @@ class PostControllerTest {
         postService = mock(PostService.class);
         idempotencyService = mock(IdempotencyService.class);
         userRepository = mock(UserRepository.class);
-        controller = new PostController(postService, idempotencyService, userRepository);
+        postRepository = mock(PostRepository.class);
+        likeRepository = mock(LikeRepository.class);
+        repostRepository = mock(RepostRepository.class);
+        controller = new PostController(postService, idempotencyService, userRepository, postRepository,
+            likeRepository, repostRepository);
         authorId = UUID.randomUUID();
         authentication = mock(Authentication.class);
         when(authentication.getName()).thenReturn(authorId.toString());
@@ -52,29 +65,34 @@ class PostControllerTest {
     void createPostDelegatesThroughTheSupplierItGivesIdempotencyService() {
         Post post = new Post();
         post.setAuthorId(authorId);
+        post.setHeadline("headline");
         post.setBody("hi");
-        when(postService.createPost(authorId, "hi")).thenReturn(post);
+        when(postService.createPost(authorId, "headline", "hi", null)).thenReturn(post);
         when(idempotencyService.execute(eq("key-1"), any(), eq(PostResponse.class), any()))
             .thenAnswer(invocation -> {
                 Supplier<PostResponse> action = invocation.getArgument(3);
                 return action.get();
             });
 
-        PostResponse response = controller.createPost("key-1", new CreatePostRequest("hi"), authentication);
+        PostResponse response = controller.createPost("key-1", new CreatePostRequest("headline", "hi", null),
+            authentication);
 
         assertEquals(authorId, response.authorId());
+        assertEquals("headline", response.headline());
         assertEquals("hi", response.body());
-        verify(postService).createPost(authorId, "hi");
+        verify(postService).createPost(authorId, "headline", "hi", null);
     }
 
     @Test
     void duplicateCallWithSameKeyDoesNotInvokePostServiceAgain() {
         Post post = new Post();
         post.setAuthorId(authorId);
+        post.setHeadline("headline");
         post.setBody("hi");
-        PostResponse cached = new PostResponse(post.getId(), authorId, "alice", "hi", 0, false, post.getCreatedAt());
+        PostResponse cached = new PostResponse(post.getId(), authorId, "alice", "headline", "hi", null, 0, false,
+            0, 0, false, post.getCreatedAt());
 
-        when(postService.createPost(authorId, "hi")).thenReturn(post);
+        when(postService.createPost(authorId, "headline", "hi", null)).thenReturn(post);
         when(idempotencyService.execute(eq("key-1"), any(), eq(PostResponse.class), any()))
             .thenAnswer(invocation -> {
                 Supplier<PostResponse> action = invocation.getArgument(3);
@@ -84,10 +102,37 @@ class PostControllerTest {
             // without ever invoking the supplier — simulated directly here
             .thenReturn(cached);
 
-        controller.createPost("key-1", new CreatePostRequest("hi"), authentication);
-        PostResponse second = controller.createPost("key-1", new CreatePostRequest("hi"), authentication);
+        controller.createPost("key-1", new CreatePostRequest("headline", "hi", null), authentication);
+        PostResponse second = controller.createPost("key-1", new CreatePostRequest("headline", "hi", null),
+            authentication);
 
         assertEquals(cached, second);
-        verify(postService).createPost(authorId, "hi"); // exactly once overall
+        verify(postService).createPost(authorId, "headline", "hi", null); // exactly once overall
+    }
+
+    @Test
+    void getPostReturnsResponseWithLikedAndRepostedFlagsForCurrentUser() {
+        UUID postId = UUID.randomUUID();
+        Post post = new Post();
+        post.setAuthorId(authorId);
+        post.setHeadline("headline");
+        post.setBody("hi");
+        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+        when(likeRepository.findLikedPostIds(authorId, List.of(postId))).thenReturn(Set.of(postId));
+        when(repostRepository.findRepostedPostIds(authorId, List.of(postId))).thenReturn(Set.of());
+
+        PostResponse response = controller.getPost(postId, authentication);
+
+        assertEquals("alice", response.authorUsername());
+        assertTrue(response.likedByMe());
+        assertEquals(false, response.repostedByMe());
+    }
+
+    @Test
+    void getPostThrowsNotFoundForUnknownId() {
+        UUID postId = UUID.randomUUID();
+        when(postRepository.findById(postId)).thenReturn(Optional.empty());
+
+        assertThrows(PostNotFoundException.class, () -> controller.getPost(postId, authentication));
     }
 }

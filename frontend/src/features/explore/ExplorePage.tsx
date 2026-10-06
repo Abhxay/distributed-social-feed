@@ -31,10 +31,9 @@ export function ExplorePage() {
       <Header />
       <main className="feed-main">
         <div className="explore-intro">
-          <h1>Explore</h1>
+          <h1>Explore Creators & Engineers</h1>
           <p className="muted">
-            Ranked by activity — posting, being liked, and being commented on all count (comments weigh
-            the most).
+            Ranked by weighted activity (posts + likes + comments received) via Redis sorted set.
           </p>
         </div>
 
@@ -48,7 +47,7 @@ export function ExplorePage() {
           <ul key={offset} className={`explore-list explore-slide-${direction}`}>
             {users.map((user, index) => (
               <li key={user.id} className="explore-row">
-                <span className="explore-rank">{offset + index + 1}</span>
+                <span className="explore-rank">#{offset + index + 1}</span>
                 <div className="feed-post-avatar" aria-hidden="true">
                   {user.username.slice(0, 1).toUpperCase()}
                 </div>
@@ -71,11 +70,18 @@ export function ExplorePage() {
           </ul>
         </div>
 
-        {hasMore && (
-          <button type="button" className="ghost-button explore-more" onClick={goForward} disabled={isFetching}>
-            {isFetching ? 'Loading…' : 'Explore more'}
-          </button>
-        )}
+        <div className="explore-footer">
+          <span className="muted tabular-nums">
+            Batch {Math.floor(offset / PAGE_SIZE) + 1} · {users.length} accounts shown
+          </span>
+          {hasMore ? (
+            <button type="button" className="ghost-button" onClick={goForward} disabled={isFetching}>
+              {isFetching ? 'Loading…' : 'Explore more'}
+            </button>
+          ) : (
+            <span className="muted">All ranked accounts viewed</span>
+          )}
+        </div>
       </main>
     </div>
   );

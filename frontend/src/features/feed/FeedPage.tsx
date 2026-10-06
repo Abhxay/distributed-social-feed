@@ -1,51 +1,69 @@
-import { useGetFeedQuery, useLikeMutation, useUnlikeMutation } from '../../api/apiSlice';
+import { useNavigate } from 'react-router-dom';
+import {
+  useGetFeedQuery,
+  useLikeMutation,
+  useRepostPostMutation,
+  useUnlikeMutation,
+  useUnrepostPostMutation,
+} from '../../api/apiSlice';
+import type { Post } from '../../api/apiSlice';
 import { Header } from '../../components/Header';
+import { TrendingPanel } from '../../components/TrendingPanel';
+import { useFeedKeyboardNavigation } from '../../hooks/useFeedKeyboardNavigation';
 import { FollowSearch } from '../search/FollowSearch';
-import { PostComments } from './PostComments';
+import { PostCard } from './PostCard';
 import { PostComposer } from './PostComposer';
 
 export function FeedPage() {
   const { data: posts = [], isLoading } = useGetFeedQuery();
+  const navigate = useNavigate();
   const [like] = useLikeMutation();
   const [unlike] = useUnlikeMutation();
+  const [repostPost] = useRepostPostMutation();
+  const [unrepostPost] = useUnrepostPostMutation();
+
+  const { activePostId, setActiveIndex, registerPostRef } = useFeedKeyboardNavigation({
+    posts,
+    onOpenPost: (post: Post) => navigate(`/posts/${post.postId}`),
+    onToggleLike: (post: Post) => (post.likedByMe ? unlike(post.postId) : like(post.postId)),
+    onToggleRepost: (post: Post) =>
+      post.repostedByMe ? unrepostPost(post.postId) : repostPost(post.postId),
+  });
 
   return (
     <div className="feed-page">
       <Header />
+      <FollowSearch />
 
-      <main className="feed-main">
-        <FollowSearch />
-        <PostComposer />
+      <div className="feed-layout">
+        <TrendingPanel />
 
-        {isLoading && <p className="muted">Loading feed…</p>}
-        {!isLoading && posts.length === 0 && (
-          <p className="muted">
-            Nothing here yet — follow someone above, or write the first post.
-          </p>
-        )}
+        <main className="feed-main">
+          {isLoading && <p className="muted">Loading feed…</p>}
+          {!isLoading && posts.length === 0 && (
+            <p className="muted">
+              Nothing here yet — follow someone, or write the first post.
+            </p>
+          )}
 
-        <ul className="feed-list">
-          {posts.map((post) => (
-            <li key={post.postId} className="feed-post">
-              <div className="feed-post-avatar" aria-hidden="true">
-                {(post.authorUsername || '?').slice(0, 1).toUpperCase()}
-              </div>
-              <div className="feed-post-content">
-                <p className="feed-post-author">{post.authorUsername}</p>
-                <p className="feed-post-body">{post.body}</p>
-                <button
-                  type="button"
-                  className={post.likedByMe ? 'like-button liked' : 'like-button'}
-                  onClick={() => (post.likedByMe ? unlike(post.postId) : like(post.postId))}
-                >
-                  {post.likedByMe ? '♥' : '♡'} {post.likeCount}
-                </button>
-                <PostComments postId={post.postId} />
-              </div>
-            </li>
-          ))}
-        </ul>
-      </main>
+          <ul className="feed-list">
+            {posts.map((post, index) => (
+              <PostCard
+                key={post.postId}
+                post={post}
+                isActive={post.postId === activePostId}
+                cardRef={(el) => registerPostRef(index, el)}
+                onCardClick={() => setActiveIndex(index)}
+              />
+            ))}
+          </ul>
+        </main>
+
+        <aside className="feed-sidebar composer-panel">
+          <h2>Share something</h2>
+          <PostComposer />
+        </aside>
+      </div>
     </div>
   );
 }

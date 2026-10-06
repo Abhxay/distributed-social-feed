@@ -37,7 +37,12 @@ public class LikeService {
     public void unlike(UUID userId, UUID postId) {
         int deleted = likeRepository.deleteIfExists(userId, postId);
         if (deleted > 0) {
-            redis.opsForValue().decrement("likecount:" + postId);
+            // Zero means "no one has liked this yet" — never let the fast-path counter show
+            // negative, even transiently from an out-of-order decrement after cache expiry.
+            Long newCount = redis.opsForValue().decrement("likecount:" + postId);
+            if (newCount != null && newCount < 0) {
+                redis.opsForValue().set("likecount:" + postId, "0");
+            }
             postRepository.findById(postId).ifPresent(post -> exploreRanking.revokeLike(post.getAuthorId()));
         }
         redis.opsForSet().add("dirty:likes", postId.toString());

@@ -36,10 +36,12 @@ class PostServiceTest {
     void createPostSavesThePostAndItsOutboxEventTogether() {
         UUID authorId = UUID.randomUUID();
 
-        Post result = service.createPost(authorId, "hello world");
+        Post result = service.createPost(authorId, "hello", "hello world", "http://img");
 
         assertEquals(authorId, result.getAuthorId());
+        assertEquals("hello", result.getHeadline());
         assertEquals("hello world", result.getBody());
+        assertEquals("http://img", result.getImageUrl());
         verify(postRepository).save(result);
         verify(outboxEventRepository).save(any(OutboxEvent.class));
     }

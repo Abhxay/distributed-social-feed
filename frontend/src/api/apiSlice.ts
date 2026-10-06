@@ -1,13 +1,18 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { RootState } from '../app/store';
 
-export interface FeedPost {
+export interface Post {
   postId: string;
   authorId: string;
   authorUsername: string;
+  headline: string;
   body: string;
+  imageUrl: string | null;
   likeCount: number;
   likedByMe: boolean;
+  commentCount: number;
+  repostCount: number;
+  repostedByMe: boolean;
   createdAt: string;
 }
 
@@ -27,7 +32,8 @@ export interface Profile {
   likesReceived: number;
   commentsReceived: number;
   activityScore: number;
-  posts: FeedPost[];
+  posts: Post[];
+  reposts: Post[];
 }
 
 export interface ExplorePage {
@@ -51,6 +57,24 @@ export interface ExploreUser {
 interface AuthTokens {
   accessToken: string;
   refreshToken: string;
+}
+
+// Shared by like/unlike/repost/unrepost: the same post can be sitting in the feed
+// list, the single-post cache, and the profile's posts/reposts lists at once, so
+// one optimistic toggle needs to patch all three. updateQueryData no-ops cleanly
+// on a cache entry that isn't populated, so this is safe to call unconditionally.
+function patchPostEverywhere(postId: string, mutate: (post: Post) => void) {
+  return [
+    apiSlice.util.updateQueryData('getFeed', undefined, (draft) => {
+      const post = draft.find((p) => p.postId === postId);
+      if (post) mutate(post);
+    }),
+    apiSlice.util.updateQueryData('getPost', postId, mutate),
+    apiSlice.util.updateQueryData('getProfile', undefined, (draft) => {
+      const post = draft.posts.find((p) => p.postId === postId) ?? draft.reposts.find((p) => p.postId === postId);
+      if (post) mutate(post);
+    }),
+  ];
 }
 
 export const apiSlice = createApi({
@@ -113,11 +137,11 @@ export const apiSlice = createApi({
       invalidatesTags: ['Explore'],
     }),
 
-    createPost: builder.mutation<{ postId: string }, string>({
+    createPost: builder.mutation<{ postId: string }, { headline: string; body: string; imageUrl?: string }>({
       query: (body) => ({
         url: '/posts',
         method: 'POST',
-        body: { body },
+        body,
         // ponytail: a production version would need to reuse the same
         // Idempotency-Key across RTK-Query-internal retries of one logical
         // attempt, not regenerate a fresh key per retry. Out of scope here —
@@ -127,9 +151,13 @@ export const apiSlice = createApi({
       invalidatesTags: ['Feed', 'Profile'],
     }),
 
-    getFeed: builder.query<FeedPost[], void>({
+    getFeed: builder.query<Post[], void>({
       query: () => '/feed',
       providesTags: ['Feed'],
+    }),
+
+    getPost: builder.query<Post, string>({
+      query: (postId) => `/posts/${postId}`,
     }),
 
     like: builder.mutation<{ liked: true }, string>({
@@ -139,19 +167,15 @@ export const apiSlice = createApi({
         headers: { 'Idempotency-Key': crypto.randomUUID() },
       }),
       async onQueryStarted(postId, { dispatch, queryFulfilled }) {
-        const patchResult = dispatch(
-          apiSlice.util.updateQueryData('getFeed', undefined, (draft) => {
-            const post = draft.find((p) => p.postId === postId);
-            if (post) {
-              post.likedByMe = true;
-              post.likeCount += 1;
-            }
-          }),
-        );
+        const [feed, post, profile] = patchPostEverywhere(postId, (post) => {
+          post.likedByMe = true;
+          post.likeCount += 1;
+        });
+        const patches = [dispatch(feed), dispatch(post), dispatch(profile)];
         try {
           await queryFulfilled;
         } catch {
-          patchResult.undo();
+          patches.forEach((p) => p.undo());
         }
       },
     }),
@@ -169,19 +193,51 @@ export const apiSlice = createApi({
     unlike: builder.mutation<{ liked: false }, string>({
       query: (postId) => ({ url: `/posts/${postId}/likes`, method: 'DELETE' }),
       async onQueryStarted(postId, { dispatch, queryFulfilled }) {
-        const patchResult = dispatch(
-          apiSlice.util.updateQueryData('getFeed', undefined, (draft) => {
-            const post = draft.find((p) => p.postId === postId);
-            if (post) {
-              post.likedByMe = false;
-              post.likeCount -= 1;
-            }
-          }),
-        );
+        const [feed, post, profile] = patchPostEverywhere(postId, (post) => {
+          post.likedByMe = false;
+          post.likeCount = Math.max(0, post.likeCount - 1); // never show negative, even transiently
+        });
+        const patches = [dispatch(feed), dispatch(post), dispatch(profile)];
         try {
           await queryFulfilled;
         } catch {
-          patchResult.undo();
+          patches.forEach((p) => p.undo());
+        }
+      },
+    }),
+
+    repostPost: builder.mutation<{ reposted: true }, string>({
+      query: (postId) => ({
+        url: `/posts/${postId}/reposts`,
+        method: 'POST',
+        headers: { 'Idempotency-Key': crypto.randomUUID() },
+      }),
+      async onQueryStarted(postId, { dispatch, queryFulfilled }) {
+        const [feed, post, profile] = patchPostEverywhere(postId, (post) => {
+          post.repostedByMe = true;
+          post.repostCount += 1;
+        });
+        const patches = [dispatch(feed), dispatch(post), dispatch(profile)];
+        try {
+          await queryFulfilled;
+        } catch {
+          patches.forEach((p) => p.undo());
+        }
+      },
+    }),
+
+    unrepostPost: builder.mutation<{ reposted: false }, string>({
+      query: (postId) => ({ url: `/posts/${postId}/reposts`, method: 'DELETE' }),
+      async onQueryStarted(postId, { dispatch, queryFulfilled }) {
+        const [feed, post, profile] = patchPostEverywhere(postId, (post) => {
+          post.repostedByMe = false;
+          post.repostCount = Math.max(0, post.repostCount - 1);
+        });
+        const patches = [dispatch(feed), dispatch(post), dispatch(profile)];
+        try {
+          await queryFulfilled;
+        } catch {
+          patches.forEach((p) => p.undo());
         }
       },
     }),
@@ -203,6 +259,9 @@ export const {
   useChangePasswordMutation,
   useCreatePostMutation,
   useGetFeedQuery,
+  useGetPostQuery,
   useLikeMutation,
   useUnlikeMutation,
+  useRepostPostMutation,
+  useUnrepostPostMutation,
 } = apiSlice;

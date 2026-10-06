@@ -6,4 +6,5 @@ import java.util.List;
 import java.util.UUID;
 
 public record ProfileResponse(UUID id, String username, long postCount, long likesReceived,
-                               long commentsReceived, double activityScore, List<PostResponse> posts) {}
+                               long commentsReceived, double activityScore, List<PostResponse> posts,
+                               List<PostResponse> reposts) {}

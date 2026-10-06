@@ -6,6 +6,7 @@ import com.showcase.feed.auth.TokenReuseDetectedException;
 import com.showcase.feed.auth.UsernameTakenException;
 import com.showcase.feed.common.idempotency.IdempotencyConflictException;
 import com.showcase.feed.follows.SelfFollowException;
+import com.showcase.feed.posts.PostNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -45,5 +46,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IncorrectPasswordException.class)
     public ResponseEntity<Map<String, String>> handleIncorrectPassword(IncorrectPasswordException e) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", e.getMessage()));
+    }
+
+    @ExceptionHandler(PostNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handlePostNotFound(PostNotFoundException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
     }
 }

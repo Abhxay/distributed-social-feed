@@ -36,5 +36,7 @@ class CommentServiceTest {
         assertEquals("nice post", result.getBody());
         verify(commentRepository).save(result);
         verify(exploreRanking).creditComment(postAuthorId); // credits the POST author, not the commenter
+        assertEquals(1, post.getCommentCount());
+        verify(postRepository).save(post);
     }
 }

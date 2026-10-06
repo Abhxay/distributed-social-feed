@@ -6,6 +6,7 @@ import com.showcase.feed.likes.LikeRepository;
 import com.showcase.feed.posts.Post;
 import com.showcase.feed.posts.PostRepository;
 import com.showcase.feed.posts.dto.PostResponse;
+import com.showcase.feed.reposts.RepostRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,13 +25,16 @@ public class FeedController {
     private final FeedCacheService feedCacheService;
     private final PostRepository postRepository;
     private final LikeRepository likeRepository;
+    private final RepostRepository repostRepository;
     private final UserRepository userRepository;
 
     public FeedController(FeedCacheService feedCacheService, PostRepository postRepository,
-                           LikeRepository likeRepository, UserRepository userRepository) {
+                           LikeRepository likeRepository, RepostRepository repostRepository,
+                           UserRepository userRepository) {
         this.feedCacheService = feedCacheService;
         this.postRepository = postRepository;
         this.likeRepository = likeRepository;
+        this.repostRepository = repostRepository;
         this.userRepository = userRepository;
     }
 
@@ -48,6 +52,7 @@ public class FeedController {
             byId.put(post.getId(), post);
         }
         Set<UUID> likedPostIds = likeRepository.findLikedPostIds(userId, ids);
+        Set<UUID> repostedPostIds = repostRepository.findRepostedPostIds(userId, ids);
 
         Set<UUID> authorIds = byId.values().stream().map(Post::getAuthorId).collect(java.util.stream.Collectors.toSet());
         Map<UUID, String> usernameById = new HashMap<>();
@@ -59,8 +64,9 @@ public class FeedController {
             .map(byId::get)
             .filter(Objects::nonNull)
             .map(post -> new PostResponse(post.getId(), post.getAuthorId(),
-                usernameById.getOrDefault(post.getAuthorId(), "unknown"), post.getBody(), post.getLikeCount(),
-                likedPostIds.contains(post.getId()), post.getCreatedAt()))
+                usernameById.getOrDefault(post.getAuthorId(), "unknown"), post.getHeadline(), post.getBody(),
+                post.getImageUrl(), post.getLikeCount(), likedPostIds.contains(post.getId()), post.getCommentCount(),
+                post.getRepostCount(), repostedPostIds.contains(post.getId()), post.getCreatedAt()))
             .toList();
     }
 }

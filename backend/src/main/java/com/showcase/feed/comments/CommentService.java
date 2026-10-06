@@ -28,7 +28,11 @@ public class CommentService {
         comment.setBody(body);
         commentRepository.save(comment);
 
-        postRepository.findById(postId).ifPresent(post -> exploreRanking.creditComment(post.getAuthorId()));
+        postRepository.findById(postId).ifPresent(post -> {
+            exploreRanking.creditComment(post.getAuthorId());
+            post.setCommentCount(post.getCommentCount() + 1);
+            postRepository.save(post);
+        });
         return comment;
     }
 }

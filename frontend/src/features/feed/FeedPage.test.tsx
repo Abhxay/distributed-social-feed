@@ -23,9 +23,14 @@ describe('FeedPage', () => {
                     postId: 'post-1',
                     authorId: 'me',
                     authorUsername: 'tester',
+                    headline: 'A test headline',
                     body: 'hello from the test',
+                    imageUrl: null,
                     likeCount: 0,
                     likedByMe: false,
+                    commentCount: 0,
+                    repostCount: 0,
+                    repostedByMe: false,
                     createdAt: new Date().toISOString(),
                   },
                 ];
@@ -48,7 +53,9 @@ describe('FeedPage', () => {
   it('calls createPost on submit and shows the new post once the feed reflects it', async () => {
     renderWithProviders(<FeedPage />);
 
-    const textarea = await screen.findByLabelText(/new post/i);
+    const headlineInput = await screen.findByLabelText(/headline/i);
+    fireEvent.change(headlineInput, { target: { value: 'A test headline' } });
+    const textarea = screen.getByLabelText(/new post/i);
     fireEvent.change(textarea, { target: { value: 'hello from the test' } });
     fireEvent.click(screen.getByRole('button', { name: /^post$/i }));
 
