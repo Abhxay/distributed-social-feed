@@ -45,4 +45,15 @@ public class AuthService {
         RefreshTokenPair pair = refreshTokenService.issue(user.getId());
         return new TokenPairResponse(pair.accessToken(), pair.rawRefreshToken());
     }
+
+    @Transactional
+    public void changePassword(UUID userId, String currentPassword, String newPassword) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new InvalidTokenException("unknown user"));
+        if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+            throw new IncorrectPasswordException();
+        }
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
 }

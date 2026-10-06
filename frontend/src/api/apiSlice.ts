@@ -20,6 +20,22 @@ export interface Comment {
   createdAt: string;
 }
 
+export interface Profile {
+  id: string;
+  username: string;
+  postCount: number;
+  likesReceived: number;
+  commentsReceived: number;
+  activityScore: number;
+  posts: FeedPost[];
+}
+
+export interface ExplorePage {
+  users: ExploreUser[];
+  totalRanked: number;
+  hasMore: boolean;
+}
+
 export interface UserSummary {
   id: string;
   username: string;
@@ -51,7 +67,7 @@ export const apiSlice = createApi({
       return headers;
     },
   }),
-  tagTypes: ['Feed', 'Explore', 'Comments'],
+  tagTypes: ['Feed', 'Explore', 'Comments', 'Profile'],
   endpoints: (builder) => ({
     signup: builder.mutation<{ userId: string }, { username: string; password: string }>({
       query: (body) => ({ url: '/auth/signup', method: 'POST', body }),
@@ -73,9 +89,18 @@ export const apiSlice = createApi({
       query: (q) => `/users/search?q=${encodeURIComponent(q)}`,
     }),
 
-    exploreUsers: builder.query<ExploreUser[], void>({
-      query: () => '/users/explore',
+    exploreUsers: builder.query<ExplorePage, { offset: number; limit: number }>({
+      query: ({ offset, limit }) => `/users/explore?offset=${offset}&limit=${limit}`,
       providesTags: ['Explore'],
+    }),
+
+    getProfile: builder.query<Profile, void>({
+      query: () => '/users/me',
+      providesTags: ['Profile'],
+    }),
+
+    changePassword: builder.mutation<{ success: boolean }, { currentPassword: string; newPassword: string }>({
+      query: (body) => ({ url: '/auth/change-password', method: 'POST', body }),
     }),
 
     follow: builder.mutation<void, string>({
@@ -99,7 +124,7 @@ export const apiSlice = createApi({
         // this showcase generates one key per mutation call.
         headers: { 'Idempotency-Key': crypto.randomUUID() },
       }),
-      invalidatesTags: ['Feed'],
+      invalidatesTags: ['Feed', 'Profile'],
     }),
 
     getFeed: builder.query<FeedPost[], void>({
@@ -174,6 +199,8 @@ export const {
   useUnfollowMutation,
   useGetCommentsQuery,
   useCreateCommentMutation,
+  useGetProfileQuery,
+  useChangePasswordMutation,
   useCreatePostMutation,
   useGetFeedQuery,
   useLikeMutation,

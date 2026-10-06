@@ -1,6 +1,7 @@
 package com.showcase.feed.follows;
 
 import com.showcase.feed.auth.UserRepository;
+import com.showcase.feed.explore.ExplorePageResponse;
 import com.showcase.feed.explore.ExploreService;
 import com.showcase.feed.explore.ExploreUserResponse;
 import com.showcase.feed.follows.dto.UserSearchResult;
@@ -51,11 +52,17 @@ public class FollowController {
             .toList();
     }
 
-    // Ranked by activity score (posting + being liked), read from a Redis sorted set — see
-    // ExploreRanking for why this one piece of data lives natively in Redis rather than Postgres.
+    // Ranked by activity score (posting + being liked/commented on), read from a Redis sorted set
+    // — see ExploreRanking for why this one piece of data lives natively in Redis rather than
+    // Postgres. Offset-paginated directly against the sorted set (ZREVRANGE), not a full fetch, so
+    // the frontend can page through in small batches cheaply.
     @GetMapping("/users/explore")
-    public List<ExploreUserResponse> explore(Authentication authentication) {
+    public ExplorePageResponse explore(@RequestParam(defaultValue = "0") int offset,
+                                        @RequestParam(defaultValue = "5") int limit,
+                                        Authentication authentication) {
         UUID currentUserId = UUID.fromString(authentication.getName());
-        return exploreService.getRanking(currentUserId, 50);
+        List<ExploreUserResponse> users = exploreService.getRanking(currentUserId, offset, limit);
+        long total = exploreService.totalRanked();
+        return new ExplorePageResponse(users, total, offset + limit < total);
     }
 }

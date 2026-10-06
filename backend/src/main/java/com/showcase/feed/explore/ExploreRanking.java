@@ -52,6 +52,11 @@ public class ExploreRanking {
         redis.opsForZSet().incrementScore(KEY, postAuthorId.toString(), COMMENT_WEIGHT);
     }
 
+    public double scoreOf(UUID userId) {
+        Double score = redis.opsForZSet().score(KEY, userId.toString());
+        return score == null ? 0 : score;
+    }
+
     /** True if the ranking has never been populated — the signal ExploreRankingBackfill uses to run once. */
     public boolean isEmpty() {
         Long size = redis.opsForZSet().size(KEY);
@@ -67,10 +72,18 @@ public class ExploreRanking {
         return postCount * POST_WEIGHT + likesReceived * LIKE_WEIGHT + commentsReceived * COMMENT_WEIGHT;
     }
 
-    /** Highest-scoring users first. Score is included so the UI can show it as an activity signal. */
     public List<RankedUser> topUsers(int limit) {
+        return topUsers(0, limit);
+    }
+
+    /**
+     * Highest-scoring users first, offset-paginated directly against the sorted set
+     * (ZREVRANGE start,stop) — O(log N + limit), not a full-list fetch, so paging through
+     * Explore in small batches stays cheap regardless of how many users are ranked.
+     */
+    public List<RankedUser> topUsers(int offset, int limit) {
         Set<ZSetOperations.TypedTuple<String>> ranked =
-            redis.opsForZSet().reverseRangeWithScores(KEY, 0, limit - 1);
+            redis.opsForZSet().reverseRangeWithScores(KEY, offset, offset + limit - 1);
         if (ranked == null) {
             return List.of();
         }
@@ -79,6 +92,11 @@ public class ExploreRanking {
             .map(entry -> new RankedUser(UUID.fromString(entry.getValue()),
                 entry.getScore() == null ? 0 : entry.getScore()))
             .toList();
+    }
+
+    public long totalRanked() {
+        Long size = redis.opsForZSet().size(KEY);
+        return size == null ? 0 : size;
     }
 
     public record RankedUser(UUID userId, double activityScore) {}

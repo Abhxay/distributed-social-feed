@@ -4,6 +4,8 @@ import { LoginPage } from './features/auth/LoginPage';
 import { ProtectedRoute } from './features/auth/ProtectedRoute';
 import { FeedPage } from './features/feed/FeedPage';
 import { ExplorePage } from './features/explore/ExplorePage';
+import { ProfilePage } from './features/profile/ProfilePage';
+import { AccountSettingsPage } from './features/profile/AccountSettingsPage';
 
 function App() {
   return (
@@ -23,6 +25,22 @@ function App() {
         element={
           <ProtectedRoute>
             <ExplorePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <AccountSettingsPage />
           </ProtectedRoute>
         }
       />

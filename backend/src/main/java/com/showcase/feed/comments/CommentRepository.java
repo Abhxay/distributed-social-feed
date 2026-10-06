@@ -18,4 +18,8 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
     @Query(value = "SELECT p.author_id, COUNT(c.id) FROM comments c "
         + "JOIN posts p ON p.id = c.post_id GROUP BY p.author_id", nativeQuery = true)
     List<Object[]> aggregateCommentsReceivedByAuthor();
+
+    @Query(value = "SELECT COUNT(c.id) FROM comments c JOIN posts p ON p.id = c.post_id "
+        + "WHERE p.author_id = :authorId", nativeQuery = true)
+    long countCommentsReceivedByAuthor(UUID authorId);
 }

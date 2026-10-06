@@ -12,6 +12,11 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
 
     long countByAuthorId(UUID authorId);
 
+    List<Post> findByAuthorIdOrderByCreatedAtDesc(UUID authorId);
+
+    @Query("SELECT COALESCE(SUM(p.likeCount), 0) FROM Post p WHERE p.authorId = :authorId")
+    long sumLikesForAuthor(@Param("authorId") UUID authorId);
+
     /** Feed rebuild: posts authored by anyone the given user follows, newest first, backed by idx_posts_author_created. */
     @Query(value = "SELECT p.* FROM posts p JOIN follows f ON f.followee_id = p.author_id "
         + "WHERE f.follower_id = :userId ORDER BY p.created_at DESC LIMIT :limit", nativeQuery = true)

@@ -1,5 +1,6 @@
 package com.showcase.feed.common;
 
+import com.showcase.feed.auth.IncorrectPasswordException;
 import com.showcase.feed.auth.InvalidTokenException;
 import com.showcase.feed.auth.TokenReuseDetectedException;
 import com.showcase.feed.auth.UsernameTakenException;
@@ -38,6 +39,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidTokenException.class)
     public ResponseEntity<Map<String, String>> handleInvalidToken(InvalidTokenException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", e.getMessage()));
+    }
+
+    @ExceptionHandler(IncorrectPasswordException.class)
+    public ResponseEntity<Map<String, String>> handleIncorrectPassword(IncorrectPasswordException e) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", e.getMessage()));
     }
 }

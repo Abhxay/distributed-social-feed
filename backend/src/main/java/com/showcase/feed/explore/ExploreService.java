@@ -24,8 +24,8 @@ public class ExploreService {
         this.followRepository = followRepository;
     }
 
-    public List<ExploreUserResponse> getRanking(UUID currentUserId, int limit) {
-        List<ExploreRanking.RankedUser> ranked = exploreRanking.topUsers(limit);
+    public List<ExploreUserResponse> getRanking(UUID currentUserId, int offset, int limit) {
+        List<ExploreRanking.RankedUser> ranked = exploreRanking.topUsers(offset, limit);
         if (ranked.isEmpty()) {
             return List.of();
         }
@@ -47,5 +47,9 @@ public class ExploreService {
                 entry.activityScore(),
                 alreadyFollowing.contains(entry.userId())))
             .toList();
+    }
+
+    public long totalRanked() {
+        return exploreRanking.totalRanked();
     }
 }

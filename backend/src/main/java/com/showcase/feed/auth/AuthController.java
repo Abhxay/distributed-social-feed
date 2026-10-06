@@ -1,11 +1,13 @@
 package com.showcase.feed.auth;
 
+import com.showcase.feed.auth.dto.ChangePasswordRequest;
 import com.showcase.feed.auth.dto.LoginRequest;
 import com.showcase.feed.auth.dto.RefreshRequest;
 import com.showcase.feed.auth.dto.SignupRequest;
 import com.showcase.feed.auth.dto.TokenPairResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -53,5 +55,13 @@ public class AuthController {
     public TokenPairResponse refresh(@Valid @RequestBody RefreshRequest request) {
         RefreshTokenPair pair = refreshTokenService.rotate(request.refreshToken());
         return new TokenPairResponse(pair.accessToken(), pair.rawRefreshToken());
+    }
+
+    @PostMapping("/change-password")
+    public Map<String, Boolean> changePassword(@Valid @RequestBody ChangePasswordRequest request,
+                                                Authentication authentication) {
+        UUID userId = UUID.fromString(authentication.getName());
+        authService.changePassword(userId, request.currentPassword(), request.newPassword());
+        return Map.of("success", true);
     }
 }
