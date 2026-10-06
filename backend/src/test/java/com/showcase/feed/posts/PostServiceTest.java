@@ -7,12 +7,16 @@ import com.showcase.feed.outbox.OutboxEventRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Optional;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * No live Postgres/Kafka needed: both repositories are mocked. This proves the one thing
@@ -44,5 +48,34 @@ class PostServiceTest {
         assertEquals("http://img", result.getImageUrl());
         verify(postRepository).save(result);
         verify(outboxEventRepository).save(any(OutboxEvent.class));
+    }
+
+    @Test
+    void attachImageSetsDataContentTypeAndImageUrlForOwnPost() {
+        UUID authorId = UUID.randomUUID();
+        UUID postId = UUID.randomUUID();
+        Post existing = new Post();
+        existing.setAuthorId(authorId);
+        when(postRepository.findById(postId)).thenReturn(Optional.of(existing));
+
+        Post result = service.attachImage(postId, authorId, new byte[] {1, 2, 3}, "image/png",
+            "http://host/posts/x/image");
+
+        assertArrayEquals(new byte[] {1, 2, 3}, result.getImageData());
+        assertEquals("image/png", result.getImageContentType());
+        assertEquals("http://host/posts/x/image", result.getImageUrl());
+        verify(postRepository).save(existing);
+    }
+
+    @Test
+    void attachImageRejectsWhenCallerIsNotTheAuthor() {
+        UUID authorId = UUID.randomUUID();
+        UUID postId = UUID.randomUUID();
+        Post existing = new Post();
+        existing.setAuthorId(authorId);
+        when(postRepository.findById(postId)).thenReturn(Optional.of(existing));
+
+        assertThrows(NotPostAuthorException.class,
+            () -> service.attachImage(postId, UUID.randomUUID(), new byte[] {1}, "image/png", "http://x"));
     }
 }

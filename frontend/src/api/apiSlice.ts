@@ -151,6 +151,18 @@ export const apiSlice = createApi({
       invalidatesTags: ['Feed', 'Profile'],
     }),
 
+    uploadPostImage: builder.mutation<Post, { postId: string; file: File }>({
+      query: ({ postId, file }) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        // fetchBaseQuery only JSON-encodes plain objects/arrays; a FormData body is passed
+        // through as-is and its content-type header is left for the browser to set (with
+        // the multipart boundary), so no header overrides are needed here.
+        return { url: `/posts/${postId}/image`, method: 'POST', body: formData };
+      },
+      invalidatesTags: ['Feed', 'Profile'],
+    }),
+
     getFeed: builder.query<Post[], void>({
       query: () => '/feed',
       providesTags: ['Feed'],
@@ -258,6 +270,7 @@ export const {
   useGetProfileQuery,
   useChangePasswordMutation,
   useCreatePostMutation,
+  useUploadPostImageMutation,
   useGetFeedQuery,
   useGetPostQuery,
   useLikeMutation,

@@ -30,6 +30,12 @@ public class Post {
     @Column(name = "image_url", length = 500)
     private String imageUrl;
 
+    @Column(name = "image_data")
+    private byte[] imageData;
+
+    @Column(name = "image_content_type", length = 100)
+    private String imageContentType;
+
     @Column(name = "like_count", nullable = false)
     private int likeCount;
 
@@ -76,6 +82,22 @@ public class Post {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public byte[] getImageData() {
+        return imageData;
+    }
+
+    public void setImageData(byte[] imageData) {
+        this.imageData = imageData;
+    }
+
+    public String getImageContentType() {
+        return imageContentType;
+    }
+
+    public void setImageContentType(String imageContentType) {
+        this.imageContentType = imageContentType;
     }
 
     public int getLikeCount() {

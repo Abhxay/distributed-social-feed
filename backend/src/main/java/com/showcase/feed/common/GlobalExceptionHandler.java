@@ -6,11 +6,14 @@ import com.showcase.feed.auth.TokenReuseDetectedException;
 import com.showcase.feed.auth.UsernameTakenException;
 import com.showcase.feed.common.idempotency.IdempotencyConflictException;
 import com.showcase.feed.follows.SelfFollowException;
+import com.showcase.feed.posts.InvalidImageException;
+import com.showcase.feed.posts.NotPostAuthorException;
 import com.showcase.feed.posts.PostNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.Map;
 
@@ -51,5 +54,20 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(PostNotFoundException.class)
     public ResponseEntity<Map<String, String>> handlePostNotFound(PostNotFoundException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+    }
+
+    @ExceptionHandler(NotPostAuthorException.class)
+    public ResponseEntity<Map<String, String>> handleNotPostAuthor(NotPostAuthorException e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", e.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidImageException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidImage(InvalidImageException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, String>> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "image must be 5MB or smaller"));
     }
 }

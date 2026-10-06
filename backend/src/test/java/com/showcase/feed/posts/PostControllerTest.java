@@ -9,6 +9,8 @@ import com.showcase.feed.posts.dto.PostResponse;
 import com.showcase.feed.reposts.RepostRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.Authentication;
 
 import java.util.List;
@@ -17,6 +19,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -134,5 +137,74 @@ class PostControllerTest {
         when(postRepository.findById(postId)).thenReturn(Optional.empty());
 
         assertThrows(PostNotFoundException.class, () -> controller.getPost(postId, authentication));
+    }
+
+    @Test
+    void uploadImageRejectsNonImageContentType() {
+        UUID postId = UUID.randomUUID();
+        MockMultipartFile file = new MockMultipartFile("file", "a.txt", "text/plain", "hi".getBytes());
+
+        assertThrows(InvalidImageException.class,
+            () -> controller.uploadImage(postId, file, authentication, new MockHttpServletRequest()));
+    }
+
+    @Test
+    void uploadImageRejectsFileOverFiveMegabytes() {
+        UUID postId = UUID.randomUUID();
+        MockMultipartFile file = new MockMultipartFile("file", "a.png", "image/png", new byte[6 * 1024 * 1024]);
+
+        assertThrows(InvalidImageException.class,
+            () -> controller.uploadImage(postId, file, authentication, new MockHttpServletRequest()));
+    }
+
+    @Test
+    void uploadImageDelegatesToPostServiceAndReturnsUpdatedResponse() {
+        UUID postId = UUID.randomUUID();
+        MockMultipartFile file = new MockMultipartFile("file", "a.png", "image/png", new byte[] {9, 9, 9});
+        Post updated = new Post();
+        updated.setAuthorId(authorId);
+        updated.setHeadline("headline");
+        updated.setBody("hi");
+        updated.setImageContentType("image/png");
+        when(postService.attachImage(eq(postId), eq(authorId), any(byte[].class), eq("image/png"), any()))
+            .thenReturn(updated);
+        when(likeRepository.findLikedPostIds(authorId, List.of(postId))).thenReturn(Set.of());
+        when(repostRepository.findRepostedPostIds(authorId, List.of(postId))).thenReturn(Set.of());
+
+        PostResponse response = controller.uploadImage(postId, file, authentication, new MockHttpServletRequest());
+
+        assertEquals("headline", response.headline());
+        verify(postService).attachImage(eq(postId), eq(authorId), any(byte[].class), eq("image/png"), any());
+    }
+
+    @Test
+    void getImageReturnsStoredBytesAndContentType() {
+        UUID postId = UUID.randomUUID();
+        Post post = new Post();
+        post.setImageData(new byte[] {1, 2, 3});
+        post.setImageContentType("image/jpeg");
+        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+
+        var response = controller.getImage(postId);
+
+        assertArrayEquals(new byte[] {1, 2, 3}, response.getBody());
+        assertEquals("image/jpeg", response.getHeaders().getFirst("Content-Type"));
+    }
+
+    @Test
+    void getImageThrowsNotFoundWhenPostHasNoImage() {
+        UUID postId = UUID.randomUUID();
+        Post post = new Post();
+        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+
+        assertThrows(PostNotFoundException.class, () -> controller.getImage(postId));
+    }
+
+    @Test
+    void getImageThrowsNotFoundForUnknownPost() {
+        UUID postId = UUID.randomUUID();
+        when(postRepository.findById(postId)).thenReturn(Optional.empty());
+
+        assertThrows(PostNotFoundException.class, () -> controller.getImage(postId));
     }
 }

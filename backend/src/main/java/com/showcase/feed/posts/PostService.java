@@ -53,6 +53,20 @@ public class PostService {
         return post;
     }
 
+    @Transactional
+    public Post attachImage(UUID postId, UUID authorId, byte[] data, String contentType, String imageUrl) {
+        Post post = postRepository.findById(postId)
+            .orElseThrow(() -> new PostNotFoundException("post not found: " + postId));
+        if (!post.getAuthorId().equals(authorId)) {
+            throw new NotPostAuthorException("not your post: " + postId);
+        }
+        post.setImageData(data);
+        post.setImageContentType(contentType);
+        post.setImageUrl(imageUrl);
+        postRepository.save(post);
+        return post;
+    }
+
     private String writePayload(Post post) {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("postId", post.getId());
