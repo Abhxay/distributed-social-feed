@@ -343,6 +343,18 @@ button:disabled {
   flex-direction: column;
   gap: var(--space-3);
   min-width: 0;
+  /* Centered/padded by default for pages that use feed-main standalone
+     (Explore, Profile, PostDetail). Reset below when it's a feed-layout
+     grid child, since feed-layout already owns that max-width/padding. */
+  max-width: 700px;
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-4);
+}
+
+.feed-layout .feed-main {
+  max-width: none;
+  margin: 0;
+  padding: 0;
 }
 
 .feed-sidebar {
