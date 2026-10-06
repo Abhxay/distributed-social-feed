@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450">
+  <defs>
+    <linearGradient id="bg16" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a1b1e"/>
+      <stop offset="55%" stop-color="#121214"/>
+      <stop offset="100%" stop-color="#0a0a0c"/>
+    </linearGradient>
+    <radialGradient id="glow16a" cx="50%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#fb7185" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#fb7185" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow16b" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#d9a05b" stop-opacity="0.65"/>
+      <stop offset="100%" stop-color="#d9a05b" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="marquee16" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2b2d33"/>
+      <stop offset="100%" stop-color="#1a1b1e"/>
+    </linearGradient>
+    <filter id="blur16" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+    <filter id="softblur16" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3"/>
+    </filter>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#bg16)"/>
+
+  <!-- fog -->
+  <ellipse cx="400" cy="430" rx="420" ry="90" fill="#44464d" opacity="0.18" filter="url(#blur16)"/>
+  <ellipse cx="180" cy="400" rx="260" ry="70" fill="#5a5d66" opacity="0.14" filter="url(#blur16)"/>
+  <ellipse cx="620" cy="410" rx="260" ry="70" fill="#5a5d66" opacity="0.14" filter="url(#blur16)"/>
+
+  <!-- eerie glow behind marquee -->
+  <rect width="800" height="450" fill="url(#glow16a)"/>
+  <rect width="800" height="450" fill="url(#glow16b)"/>
+
+  <!-- marquee arch structure -->
+  <path d="M 150 300 L 150 170 Q 150 90 400 90 Q 650 90 650 170 L 650 300 Z"
+        fill="url(#marquee16)" stroke="#2b2d33" stroke-width="2"/>
+
+  <!-- inner arch glow -->
+  <path d="M 190 300 L 190 180 Q 190 128 400 128 Q 610 128 610 180 L 610 300 Z"
+        fill="#0a0a0c" opacity="0.6"/>
+
+  <!-- marquee bulbs -->
+  <g filter="url(#softblur16)">
+    <g id="bulbrow16">
+      <circle cx="180" cy="300" r="6" fill="#f3b26b"/>
+      <circle cx="220" cy="265" r="6" fill="#f3b26b"/>
+      <circle cx="260" cy="200" r="6" fill="#fb7185"/>
+      <circle cx="320" cy="150" r="6" fill="#fb7185"/>
+      <circle cx="400" cy="128" r="6" fill="#f3b26b"/>
+      <circle cx="480" cy="150" r="6" fill="#fb7185"/>
+      <circle cx="540" cy="200" r="6" fill="#fb7185"/>
+      <circle cx="580" cy="265" r="6" fill="#f3b26b"/>
+      <circle cx="620" cy="300" r="6" fill="#f3b26b"/>
+    </g>
+  </g>
+
+  <!-- doorway glow -->
+  <rect x="350" y="230" width="100" height="70" rx="6" fill="#d9a05b" opacity="0.5" filter="url(#blur16)"/>
+  <rect x="365" y="235" width="70" height="65" rx="4" fill="#0a0a0c"/>
+
+  <!-- drifting fog wisps -->
+  <ellipse cx="250" cy="330" rx="140" ry="26" fill="#8a8d96" opacity="0.10" filter="url(#blur16)"/>
+  <ellipse cx="560" cy="340" rx="160" ry="30" fill="#8a8d96" opacity="0.10" filter="url(#blur16)"/>
+
+  <!-- floating embers -->
+  <circle cx="120" cy="150" r="2.5" fill="#fb7185" opacity="0.8"/>
+  <circle cx="680" cy="180" r="2" fill="#f3b26b" opacity="0.7"/>
+  <circle cx="700" cy="120" r="1.8" fill="#fb7185" opacity="0.6"/>
+  <circle cx="100" cy="90" r="2" fill="#f3b26b" opacity="0.6"/>
+</svg>

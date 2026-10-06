@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450">
+  <defs>
+    <linearGradient id="bg28" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#121214"/>
+      <stop offset="100%" stop-color="#0a0a0c"/>
+    </linearGradient>
+    <radialGradient id="glow28" cx="50%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#fb7185" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#fb7185" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="softblur28" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2"/>
+    </filter>
+  </defs>
+
+  <rect width="800" height="450" fill="url(#bg28)"/>
+  <rect width="800" height="450" fill="url(#glow28)"/>
+
+  <!-- fragmented face made of shards, oval silhouette broken into pieces with gaps/offsets -->
+  <g opacity="0.95">
+    <!-- left shards -->
+    <polygon points="330,120 400,110 395,180 320,185" fill="#a78bfa" opacity="0.5"/>
+    <polygon points="310,190 392,185 385,255 300,250" fill="#7c3aed" opacity="0.55"/>
+    <polygon points="300,258 300,330 340,340 320,260" fill="#a78bfa" opacity="0.4"/>
+
+    <!-- right shards, offset to suggest glitch -->
+    <polygon points="408,112 480,125 475,190 404,182" fill="#34d399" opacity="0.5"/>
+    <polygon points="408,186 490,195 500,260 412,255" fill="#34d399" opacity="0.4"/>
+    <polygon points="415,258 480,262 465,335 420,330" fill="#34d399" opacity="0.55"/>
+
+    <!-- center displaced shard (the glitch) -->
+    <polygon points="360,195 440,188 448,235 352,242" fill="#fb7185" opacity="0.65" transform="translate(14,-6)"/>
+
+    <!-- lower jaw shards -->
+    <polygon points="340,345 460,340 430,395 370,395" fill="#7c3aed" opacity="0.45"/>
+  </g>
+
+  <!-- outline fragments (edges) -->
+  <g stroke="#fafafa" stroke-width="1" opacity="0.25" fill="none">
+    <polygon points="330,120 400,110 395,180 320,185"/>
+    <polygon points="408,112 480,125 475,190 404,182"/>
+    <polygon points="310,190 392,185 385,255 300,250"/>
+    <polygon points="408,186 490,195 500,260 412,255"/>
+    <polygon points="340,345 460,340 430,395 370,395"/>
+  </g>
+
+  <!-- scan lines -->
+  <g opacity="0.12" stroke="#fafafa" stroke-width="1">
+    <line x1="260" y1="150" x2="540" y2="150"/>
+    <line x1="260" y1="210" x2="540" y2="210"/>
+    <line x1="260" y1="270" x2="540" y2="270"/>
+    <line x1="260" y1="330" x2="540" y2="330"/>
+  </g>
+
+  <!-- light particle motes drifting off the fragmented face -->
+  <g filter="url(#softblur28)">
+    <circle cx="520" cy="150" r="2.5" fill="#fb7185" opacity="0.8"/>
+    <circle cx="545" cy="190" r="2" fill="#a78bfa" opacity="0.7"/>
+    <circle cx="560" cy="240" r="1.8" fill="#34d399" opacity="0.7"/>
+    <circle cx="250" cy="170" r="2.2" fill="#a78bfa" opacity="0.7"/>
+    <circle cx="225" cy="230" r="1.8" fill="#34d399" opacity="0.6"/>
+    <circle cx="580" cy="290" r="1.6" fill="#fb7185" opacity="0.6"/>
+    <circle cx="200" cy="300" r="1.6" fill="#fb7185" opacity="0.5"/>
+  </g>
+
+  <!-- small floating data rectangles -->
+  <g opacity="0.5">
+    <rect x="600" y="140" width="14" height="6" fill="#34d399"/>
+    <rect x="170" y="340" width="14" height="6" fill="#a78bfa"/>
+    <rect x="610" y="320" width="10" height="5" fill="#fb7185"/>
+  </g>
+</svg>

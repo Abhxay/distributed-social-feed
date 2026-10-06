@@ -11,6 +11,7 @@ Thumbs.db
 # Scratch logs from local scripts
 .seed-progress.log
 .engagement-progress.log
+.topical-seed-progress.log
 
 # Design-reference-only scaffold (not part of the shipped app)
 aether-social/
