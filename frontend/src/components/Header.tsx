@@ -1,5 +1,6 @@
 import { useDispatch } from 'react-redux';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { apiSlice } from '../api/apiSlice';
 import { logout } from '../features/auth/authSlice';
 
 export function Header() {
@@ -8,6 +9,9 @@ export function Header() {
 
   const handleLogout = () => {
     dispatch(logout());
+    // Clears RTK Query's cache too — otherwise the next login in this tab could briefly show
+    // this account's cached feed/explore data before its own requests resolve.
+    dispatch(apiSlice.util.resetApiState());
     navigate('/login');
   };
 

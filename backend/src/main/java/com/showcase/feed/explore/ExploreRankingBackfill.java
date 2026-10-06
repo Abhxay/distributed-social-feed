@@ -1,5 +1,6 @@
 package com.showcase.feed.explore;
 
+import com.showcase.feed.comments.CommentRepository;
 import com.showcase.feed.posts.PostRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,6 +8,8 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -22,10 +25,13 @@ public class ExploreRankingBackfill implements ApplicationRunner {
 
     private final ExploreRanking exploreRanking;
     private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
 
-    public ExploreRankingBackfill(ExploreRanking exploreRanking, PostRepository postRepository) {
+    public ExploreRankingBackfill(ExploreRanking exploreRanking, PostRepository postRepository,
+                                   CommentRepository commentRepository) {
         this.exploreRanking = exploreRanking;
         this.postRepository = postRepository;
+        this.commentRepository = commentRepository;
     }
 
     @Override
@@ -33,12 +39,19 @@ public class ExploreRankingBackfill implements ApplicationRunner {
         if (!exploreRanking.isEmpty()) {
             return;
         }
+
+        Map<UUID, Long> commentsByAuthor = new HashMap<>();
+        for (Object[] row : commentRepository.aggregateCommentsReceivedByAuthor()) {
+            commentsByAuthor.put((UUID) row[0], ((Number) row[1]).longValue());
+        }
+
         int seeded = 0;
         for (Object[] row : postRepository.aggregateActivityByAuthor()) {
             UUID authorId = (UUID) row[0];
             long postCount = (Long) row[1];
             long likesReceived = (Long) row[2];
-            exploreRanking.seed(authorId, ExploreRanking.weighScore(postCount, likesReceived));
+            long commentsReceived = commentsByAuthor.getOrDefault(authorId, 0L);
+            exploreRanking.seed(authorId, ExploreRanking.weighScore(postCount, likesReceived, commentsReceived));
             seeded++;
         }
         if (seeded > 0) {

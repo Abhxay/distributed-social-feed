@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { useLoginMutation } from '../../api/apiSlice';
+import { apiSlice, useLoginMutation } from '../../api/apiSlice';
 import { setTokens } from './authSlice';
 
 export function LoginPage() {
@@ -16,6 +16,9 @@ export function LoginPage() {
     e.preventDefault();
     const tokens = await login({ username, password }).unwrap();
     dispatch(setTokens(tokens));
+    // Without this, RTK Query's cache (keyed by endpoint, not by user — getFeed takes no args)
+    // would keep showing whichever user's data was cached from a previous login in this tab.
+    dispatch(apiSlice.util.resetApiState());
     navigate('/feed');
   };
 

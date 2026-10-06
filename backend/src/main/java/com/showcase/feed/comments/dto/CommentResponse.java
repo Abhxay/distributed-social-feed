@@ -1,0 +1,7 @@
+package com.showcase.feed.comments.dto;
+
+import java.time.Instant;
+import java.util.UUID;
+
+public record CommentResponse(UUID id, UUID postId, UUID authorId, String authorUsername, String body,
+                               Instant createdAt) {}

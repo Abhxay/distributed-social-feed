@@ -28,6 +28,7 @@ public class ExploreRanking {
     private static final String KEY = "explore:ranking";
     private static final double POST_WEIGHT = 1;
     private static final double LIKE_WEIGHT = 2;
+    private static final double COMMENT_WEIGHT = 3;
 
     private final StringRedisTemplate redis;
 
@@ -47,6 +48,10 @@ public class ExploreRanking {
         redis.opsForZSet().incrementScore(KEY, postAuthorId.toString(), -LIKE_WEIGHT);
     }
 
+    public void creditComment(UUID postAuthorId) {
+        redis.opsForZSet().incrementScore(KEY, postAuthorId.toString(), COMMENT_WEIGHT);
+    }
+
     /** True if the ranking has never been populated — the signal ExploreRankingBackfill uses to run once. */
     public boolean isEmpty() {
         Long size = redis.opsForZSet().size(KEY);
@@ -58,8 +63,8 @@ public class ExploreRanking {
         redis.opsForZSet().add(KEY, userId.toString(), score);
     }
 
-    public static double weighScore(long postCount, long likesReceived) {
-        return postCount * POST_WEIGHT + likesReceived * LIKE_WEIGHT;
+    public static double weighScore(long postCount, long likesReceived, long commentsReceived) {
+        return postCount * POST_WEIGHT + likesReceived * LIKE_WEIGHT + commentsReceived * COMMENT_WEIGHT;
     }
 
     /** Highest-scoring users first. Score is included so the UI can show it as an activity signal. */

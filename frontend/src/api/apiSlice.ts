@@ -11,6 +11,15 @@ export interface FeedPost {
   createdAt: string;
 }
 
+export interface Comment {
+  id: string;
+  postId: string;
+  authorId: string;
+  authorUsername: string;
+  body: string;
+  createdAt: string;
+}
+
 export interface UserSummary {
   id: string;
   username: string;
@@ -42,7 +51,7 @@ export const apiSlice = createApi({
       return headers;
     },
   }),
-  tagTypes: ['Feed', 'Explore'],
+  tagTypes: ['Feed', 'Explore', 'Comments'],
   endpoints: (builder) => ({
     signup: builder.mutation<{ userId: string }, { username: string; password: string }>({
       query: (body) => ({ url: '/auth/signup', method: 'POST', body }),
@@ -122,6 +131,16 @@ export const apiSlice = createApi({
       },
     }),
 
+    getComments: builder.query<Comment[], string>({
+      query: (postId) => `/posts/${postId}/comments`,
+      providesTags: (_result, _error, postId) => [{ type: 'Comments', id: postId }],
+    }),
+
+    createComment: builder.mutation<Comment, { postId: string; body: string }>({
+      query: ({ postId, body }) => ({ url: `/posts/${postId}/comments`, method: 'POST', body: { body } }),
+      invalidatesTags: (_result, _error, { postId }) => [{ type: 'Comments', id: postId }],
+    }),
+
     unlike: builder.mutation<{ liked: false }, string>({
       query: (postId) => ({ url: `/posts/${postId}/likes`, method: 'DELETE' }),
       async onQueryStarted(postId, { dispatch, queryFulfilled }) {
@@ -153,6 +172,8 @@ export const {
   useExploreUsersQuery,
   useFollowMutation,
   useUnfollowMutation,
+  useGetCommentsQuery,
+  useCreateCommentMutation,
   useCreatePostMutation,
   useGetFeedQuery,
   useLikeMutation,

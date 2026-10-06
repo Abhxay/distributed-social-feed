@@ -1,6 +1,7 @@
 import { useGetFeedQuery, useLikeMutation, useUnlikeMutation } from '../../api/apiSlice';
 import { Header } from '../../components/Header';
 import { FollowSearch } from '../search/FollowSearch';
+import { PostComments } from './PostComments';
 import { PostComposer } from './PostComposer';
 
 export function FeedPage() {
@@ -39,6 +40,7 @@ export function FeedPage() {
                 >
                   {post.likedByMe ? '♥' : '♡'} {post.likeCount}
                 </button>
+                <PostComments postId={post.postId} />
               </div>
             </li>
           ))}
