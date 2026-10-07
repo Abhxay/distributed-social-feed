@@ -18,3 +18,6 @@ aether-social/
 
 # Demo account credentials (plaintext passwords) - local use only, never commit
 accounts.csv
+
+# Brainstorming visual-companion session files (mockups, local only)
+.superpowers/

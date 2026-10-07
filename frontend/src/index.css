@@ -1106,6 +1106,39 @@ button:disabled {
   padding: 0;
 }
 
+.explore-carousel {
+  position: relative;
+}
+
+.explore-list-current {
+  position: relative;
+  z-index: 1;
+}
+
+.explore-list-peek {
+  /* positioned entirely to the left of the current list's own box (right:100% = my right
+     edge sits at the container's left edge), not underneath it - otherwise the current
+     list's opaque rows would sit on top and intercept almost every click meant for this */
+  position: absolute;
+  top: 0;
+  right: 100%;
+  margin-right: -16px;
+  width: 100%;
+  z-index: 0;
+  transform: scale(0.95);
+  filter: blur(3px);
+  opacity: 0.5;
+  cursor: pointer;
+}
+
+/* not enough room beside a <900px column for the peek to sit without clipping or causing
+   horizontal scroll - falls back to the plain swap (the back arrow still works) */
+@media (max-width: 900px) {
+  .explore-list-peek {
+    display: none;
+  }
+}
+
 .explore-footer {
   margin-top: var(--space-3);
   padding-top: var(--space-4);
