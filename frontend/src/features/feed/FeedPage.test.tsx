@@ -68,7 +68,8 @@ describe('FeedPage', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('hello from the test')).toBeInTheDocument();
+      // compact feed cards only show headline + author now; body is in the expanded view
+      expect(screen.getByText('A test headline')).toBeInTheDocument();
     });
   });
 });

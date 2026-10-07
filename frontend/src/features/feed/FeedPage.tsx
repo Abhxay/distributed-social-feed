@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import {
   useGetFeedQuery,
   useLikeMutation,
@@ -13,18 +13,22 @@ import { useFeedKeyboardNavigation } from '../../hooks/useFeedKeyboardNavigation
 import { FollowSearch } from '../search/FollowSearch';
 import { PostCard } from './PostCard';
 import { PostComposer } from './PostComposer';
+import { PostExpandedOverlay } from './PostExpandedOverlay';
 
 export function FeedPage() {
   const { data: posts = [], isLoading } = useGetFeedQuery();
-  const navigate = useNavigate();
   const [like] = useLikeMutation();
   const [unlike] = useUnlikeMutation();
   const [repostPost] = useRepostPostMutation();
   const [unrepostPost] = useUnrepostPostMutation();
+  const [expandedPostId, setExpandedPostId] = useState<string | null>(null);
+  // look up by id each render, rather than storing the Post object itself, so a like/repost
+  // made from inside the overlay shows the live count instead of a frozen snapshot
+  const expandedPost = posts.find((p) => p.postId === expandedPostId) ?? null;
 
   const { activePostId, setActiveIndex, registerPostRef } = useFeedKeyboardNavigation({
     posts,
-    onOpenPost: (post: Post) => navigate(`/posts/${post.postId}`),
+    onOpenPost: (post: Post) => setExpandedPostId(post.postId),
     onToggleLike: (post: Post) => (post.likedByMe ? unlike(post.postId) : like(post.postId)),
     onToggleRepost: (post: Post) =>
       post.repostedByMe ? unrepostPost(post.postId) : repostPost(post.postId),
@@ -53,7 +57,10 @@ export function FeedPage() {
                 post={post}
                 isActive={post.postId === activePostId}
                 cardRef={(el) => registerPostRef(index, el)}
-                onCardClick={() => setActiveIndex(index)}
+                onCardClick={() => {
+                  setActiveIndex(index);
+                  setExpandedPostId(post.postId);
+                }}
               />
             ))}
           </ul>
@@ -64,6 +71,8 @@ export function FeedPage() {
           <PostComposer />
         </aside>
       </div>
+
+      <PostExpandedOverlay post={expandedPost} onClose={() => setExpandedPostId(null)} />
     </div>
   );
 }

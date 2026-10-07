@@ -2,10 +2,16 @@ import { useState } from 'react';
 import { useGetProfileQuery } from '../../api/apiSlice';
 import { Header } from '../../components/Header';
 import { PostCard } from '../feed/PostCard';
+import { PostExpandedOverlay } from '../feed/PostExpandedOverlay';
 
 export function ProfilePage() {
   const { data: profile, isLoading } = useGetProfileQuery();
   const [activeTab, setActiveTab] = useState<'posts' | 'reposts'>('posts');
+  const [expandedPostId, setExpandedPostId] = useState<string | null>(null);
+  const expandedPost =
+    profile?.posts.find((p) => p.postId === expandedPostId) ??
+    profile?.reposts.find((p) => p.postId === expandedPostId) ??
+    null;
 
   return (
     <div className="feed-page">
@@ -63,7 +69,7 @@ export function ProfilePage() {
             {activeTab === 'posts' ? (
               <ul className="feed-list">
                 {profile.posts.map((post) => (
-                  <PostCard key={post.postId} post={post} />
+                  <PostCard key={post.postId} post={post} onCardClick={() => setExpandedPostId(post.postId)} />
                 ))}
                 {profile.posts.length === 0 && <p className="muted">No authored posts yet.</p>}
               </ul>
@@ -75,7 +81,7 @@ export function ProfilePage() {
                   <div key={`repost-${post.postId}`} className="repost-wrapper">
                     <div className="repost-label">↻ Reposted by @{profile.username}</div>
                     <ul className="feed-list">
-                      <PostCard post={post} />
+                      <PostCard post={post} onCardClick={() => setExpandedPostId(post.postId)} />
                     </ul>
                   </div>
                 ))}
@@ -84,6 +90,8 @@ export function ProfilePage() {
           </>
         )}
       </main>
+
+      <PostExpandedOverlay post={expandedPost} onClose={() => setExpandedPostId(null)} />
     </div>
   );
 }
