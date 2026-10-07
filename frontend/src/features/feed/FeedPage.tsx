@@ -42,7 +42,7 @@ export function FeedPage() {
           {isLoading && <p className="muted">Loading feed…</p>}
           {!isLoading && posts.length === 0 && (
             <p className="muted">
-              Nothing here yet — follow someone, or write the first post.
+              Nothing here yet. Follow someone, or write the first post.
             </p>
           )}
 

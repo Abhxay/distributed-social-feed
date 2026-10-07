@@ -65,7 +65,7 @@ export function ExplorePage() {
               </li>
             ))}
             {!isFetching && users.length === 0 && (
-              <p className="muted">No activity yet — be the first to post something.</p>
+              <p className="muted">No activity yet. Be the first to post something.</p>
             )}
           </ul>
         </div>

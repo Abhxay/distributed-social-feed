@@ -92,7 +92,7 @@ export function PostComposer() {
         id="post-body"
         rows={6}
         maxLength={2000}
-        placeholder="Share something — a thought, a story, a whole paragraph if you want."
+        placeholder="Share something: a thought, a story, a whole paragraph if you want."
         value={body}
         onChange={(e) => setBody(e.target.value)}
       />

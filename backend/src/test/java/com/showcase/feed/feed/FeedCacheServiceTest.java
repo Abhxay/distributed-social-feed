@@ -1,5 +1,6 @@
 package com.showcase.feed.feed;
 
+import com.showcase.feed.posts.Post;
 import com.showcase.feed.posts.PostRepository;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
@@ -7,8 +8,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.core.ZSetOperations;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -90,5 +93,42 @@ class FeedCacheServiceTest {
         assertEquals(fallbackIds, result);
         verify(postRepository, times(1)).findFeedPostIds(userId, 50);
         verify(postRepository, never()).findFeedPosts(any(), anyInt());
+    }
+
+    @Test
+    void rebuildMergesDiscoveryPostsAndDedupesAnOverlapByRecency() {
+        UUID userId = UUID.randomUUID();
+        String feedKey = "feed:" + userId;
+        String lockKey = "lock:feed:" + userId;
+        Instant now = Instant.now();
+
+        Post followedOnly = post(now.minusSeconds(300));
+        Post shared = post(now.minusSeconds(180));
+        Post discoveryOnly = post(now.minusSeconds(60));
+        // same post surfaced by both queries (followed author whose post also qualifies as discovery)
+        Post sharedAgain = post(shared.getId(), now.minusSeconds(180));
+
+        when(zSetOps.reverseRange(feedKey, 0, 49)).thenReturn(Set.of());
+        when(redis.opsForValue()).thenReturn(valueOps);
+        when(valueOps.setIfAbsent(eq(lockKey), eq("1"), any(Duration.class))).thenReturn(true);
+        when(postRepository.findFeedPosts(userId, 50)).thenReturn(List.of(followedOnly, shared));
+        when(postRepository.findDiscoveryPosts(eq(userId), any(Instant.class), eq(10), eq(50)))
+            .thenReturn(List.of(sharedAgain, discoveryOnly));
+
+        List<UUID> result = service.getFeed(userId);
+
+        assertEquals(List.of(discoveryOnly.getId(), shared.getId(), followedOnly.getId()), result);
+        verify(redis).delete(lockKey);
+    }
+
+    private Post post(Instant createdAt) {
+        return post(UUID.randomUUID(), createdAt);
+    }
+
+    private Post post(UUID id, Instant createdAt) {
+        Post post = new Post();
+        ReflectionTestUtils.setField(post, "id", id);
+        ReflectionTestUtils.setField(post, "createdAt", createdAt);
+        return post;
     }
 }

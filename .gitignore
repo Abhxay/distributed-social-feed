@@ -15,3 +15,6 @@ Thumbs.db
 
 # Design-reference-only scaffold (not part of the shipped app)
 aether-social/
+
+# Demo account credentials (plaintext passwords) - local use only, never commit
+accounts.csv

@@ -6,7 +6,7 @@
   --text: #44464d;
   --text-h: #16181d;
   --text-muted: #8a8d96;
-  --accent: #7c3aed;
+  --accent: #b45309;
   --accent-contrast: #ffffff;
   --danger: #c0392b;
   --ok: #1a7f4e;
@@ -35,7 +35,7 @@
     --text: #c3c5cc;
     --text-h: #f3f4f6;
     --text-muted: #7c7f88;
-    --accent: #a78bfa;
+    --accent: #f0a83c;
     --accent-contrast: #121214;
     --liked: #fb7185;
     --reposted: #34d399;
@@ -50,7 +50,7 @@
   --text: #c3c5cc;
   --text-h: #f3f4f6;
   --text-muted: #7c7f88;
-  --accent: #a78bfa;
+  --accent: #f0a83c;
   --accent-contrast: #121214;
   --liked: #fb7185;
   --reposted: #34d399;
@@ -63,7 +63,7 @@
   --text: #44464d;
   --text-h: #16181d;
   --text-muted: #8a8d96;
-  --accent: #7c3aed;
+  --accent: #b45309;
   --accent-contrast: #ffffff;
   --liked: #e11d48;
   --reposted: #059669;
@@ -128,10 +128,8 @@ a:hover {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  background: color-mix(in srgb, var(--surface) 70%, transparent);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid color-mix(in srgb, var(--text-h) 12%, transparent);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: var(--space-6);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
@@ -221,7 +219,7 @@ button:disabled {
   align-items: center;
   justify-content: space-between;
   padding: var(--space-4) var(--space-5);
-  border-bottom: 1px solid color-mix(in srgb, var(--text-h) 12%, transparent);
+  border-bottom: 1px solid var(--border);
   /* Solid, not translucent: the site-wide background image must not show through the nav bar. */
   background: var(--surface);
   position: sticky;
@@ -294,10 +292,8 @@ button:disabled {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  background: color-mix(in srgb, var(--surface) 78%, transparent);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid color-mix(in srgb, var(--text-h) 14%, transparent);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: var(--space-3) var(--space-4);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
@@ -358,10 +354,8 @@ button:disabled {
 }
 
 .feed-sidebar {
-  background: color-mix(in srgb, var(--surface) 78%, transparent);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid color-mix(in srgb, var(--text-h) 14%, transparent);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: var(--space-4);
   position: sticky;
@@ -445,10 +439,8 @@ button:disabled {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  background: color-mix(in srgb, var(--surface) 78%, transparent);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid color-mix(in srgb, var(--text-h) 14%, transparent);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 999px;
   padding: var(--space-2) var(--space-4);
 }
@@ -486,9 +478,8 @@ button:disabled {
   list-style: none;
   margin: var(--space-2) var(--space-4) 0;
   padding: var(--space-2);
-  background: color-mix(in srgb, var(--surface) 85%, transparent);
-  backdrop-filter: blur(16px);
-  border: 1px solid color-mix(in srgb, var(--text-h) 10%, transparent);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   max-width: 1068px;
@@ -524,10 +515,8 @@ button:disabled {
 .feed-post {
   display: flex;
   gap: var(--space-3);
-  background: color-mix(in srgb, var(--surface) 78%, transparent);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid color-mix(in srgb, var(--text-h) 14%, transparent);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: var(--space-4);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
@@ -683,10 +672,8 @@ button:disabled {
 /* ---- Discussion panel (post detail page) ---- */
 
 .discussion-panel {
-  background: color-mix(in srgb, var(--surface) 78%, transparent);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid color-mix(in srgb, var(--text-h) 14%, transparent);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: var(--space-4);
   margin-top: var(--space-3);
@@ -830,10 +817,8 @@ button:disabled {
   display: flex;
   flex-direction: column;
   min-width: 180px;
-  background: color-mix(in srgb, var(--surface) 80%, transparent);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid color-mix(in srgb, var(--text-h) 12%, transparent);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
   padding: var(--space-2);
@@ -961,10 +946,8 @@ button:disabled {
 .modal-panel {
   width: 100%;
   max-width: 420px;
-  background: color-mix(in srgb, var(--surface) 94%, transparent);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid color-mix(in srgb, var(--text-h) 12%, transparent);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: var(--space-5);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
@@ -1077,8 +1060,7 @@ button:disabled {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--surface) 80%, transparent);
-  backdrop-filter: blur(12px);
+  background: var(--surface);
   border: 1px solid var(--border);
   font-size: 18px;
   display: flex;
@@ -1132,7 +1114,7 @@ button:disabled {
 .app-footer {
   margin-top: auto;
   padding: var(--space-5) 0;
-  border-top: 1px solid color-mix(in srgb, var(--text-h) 10%, transparent);
+  border-top: 1px solid var(--border);
   font-size: 12px;
 }
 
